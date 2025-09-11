@@ -1,7 +1,10 @@
 package chess;
 
+import chess.piecemoves.PieceMovesCalc;
+
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -52,11 +55,26 @@ public class ChessPiece {
      *
      * @return Collection of valid moves
      */
-    public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        var moves = new HashSet<ChessMove>();
-        moves.add(new ChessMove(new ChessPosition(5, 4), new ChessPosition(6, 5), null));
+    public List<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
 
-        return moves;
+        ChessPiece currPiece = board.getPiece(myPosition);
+        switch (currPiece.type) {
+            case ChessPiece.PieceType.BISHOP:
+                break;
+            case ChessPiece.PieceType.ROOK:
+                break;
+            case ChessPiece.PieceType.KING:
+                break;
+            case ChessPiece.PieceType.PAWN:
+                var pawnCalc = new PieceMovesCalc(myPosition, currPiece, board);
+                return pawnCalc.getPossiblePositions();
+            case ChessPiece.PieceType.KNIGHT:
+                break;
+            case ChessPiece.PieceType.QUEEN:
+                break;
+        }
+
+        return null;
     }
 
 
