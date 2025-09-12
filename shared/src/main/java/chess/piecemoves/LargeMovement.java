@@ -25,7 +25,7 @@ public class LargeMovement {
         moves.clear();
         for (int i = myPosition.getRow() + 1; i < 9; ++i) {
             int j = i - myPosition.getRow();
-            if (j > 8 || j < 1 || i < 1) {
+            if (myPosition.getColumn() + j > 8 || j < 1 || i < 1) {
                 break;
             }
             var nextDiagonal = new ChessPosition(i, myPosition.getColumn() + j);

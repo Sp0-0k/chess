@@ -58,7 +58,7 @@ public class Knight {
             }
             //BackLeft
             if (curPosition.getColumn() != 1) {
-                var backLeft = new ChessPosition(curPosition.getRow() - 2, curPosition.getColumn() + 1);
+                var backLeft = new ChessPosition(curPosition.getRow() - 2, curPosition.getColumn() - 1);
                 var isValid = new CheckPosition(curPiece, backLeft, board);
                 if (!isValid.isOccupied() || isValid.isCapturable()) {
                     moves.add(new ChessMove(curPosition, backLeft, null));

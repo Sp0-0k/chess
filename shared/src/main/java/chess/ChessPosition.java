@@ -16,6 +16,12 @@ public class ChessPosition {
     public ChessPosition(int row, int col) {
         this.row = row;
         this.col = col;
+        if (row > 8 || row < 1) {
+            System.out.printf("invalid row %d", row);
+        }
+        if (col > 8 || col < 1) {
+            System.out.printf("invalid col %d", col);
+        }
     }
 
     /**
