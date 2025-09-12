@@ -20,24 +20,24 @@ public class PieceMovesCalc {
 
     public List<ChessMove> getPossiblePositions() {
         switch (curPiece.getPieceType()) {
-//            case ROOK -> {
-//                return Rook.rookMoveCalc(myPiece, myPosition);
-//            }
+            case ROOK -> {
+                return Rook.rookMoveCalc(curPiece, curPosition, board);
+            }
 //            case KNIGHT -> {
-//                return Knight.knightMoveCalc(myPiece, myPosition);
+//                return Knight.knightMoveCalc(curPiece, curPosition, board);
 //            }
-//            case KING -> {
-//                return King.kingMoveCalc(myPiece, myPosition);
-//            }
+            case KING -> {
+                return King.kingMoveCalc(curPiece, curPosition, board);
+            }
             case PAWN -> {
                 return Pawn.pawnMoveCalc(curPiece, curPosition, board);
             }
-//            case QUEEN -> {
-//                return Queen.queenMoveCalc(myPiece, myPosition);
-//            }
-//            case BISHOP -> {
-//                return Bishop.bishopMoveCalc(myPiece, myPosition);
-//            }
+            case QUEEN -> {
+                return Queen.queenMoveCalc(curPiece, curPosition, board);
+            }
+            case BISHOP -> {
+                return Bishop.bishopMoveCalc(curPiece, curPosition, board);
+            }
 
         }
 

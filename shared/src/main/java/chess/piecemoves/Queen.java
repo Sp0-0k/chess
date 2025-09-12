@@ -1,20 +1,19 @@
 package chess.piecemoves;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Queen {
-    ChessPosition[] possibleMoves;
 
-//    public static ChessMove[] queenMoveCalc(ChessPiece myPiece, ChessPosition myPosition) {
-//        if(myPiece.getTeamColor() == ChessGame.TeamColor.WHITE){
-//            for (int i = myPosition.getRow() -1; i < 7; ++i){
-//                if(){
-//
-//                }
-//            }
-//        }
-//    }
+    public static List<ChessMove> queenMoveCalc(ChessPiece curPiece, ChessPosition curPosition, ChessBoard board) {
+        var diagonalMoves = new LargeMovement(curPiece, curPosition, board);
+        var totalMoves = diagonalMoves.searchHorizonatals();
+        var horizontalMoves = new LargeMovement(curPiece, curPosition, board);
+        totalMoves.addAll(horizontalMoves.searchDiagonals());
+        return totalMoves;
+    }
+
+
 }

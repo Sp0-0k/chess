@@ -56,25 +56,9 @@ public class ChessPiece {
      * @return Collection of valid moves
      */
     public List<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-
-        ChessPiece currPiece = board.getPiece(myPosition);
-        switch (currPiece.type) {
-            case ChessPiece.PieceType.BISHOP:
-                break;
-            case ChessPiece.PieceType.ROOK:
-                break;
-            case ChessPiece.PieceType.KING:
-                break;
-            case ChessPiece.PieceType.PAWN:
-                var pawnCalc = new PieceMovesCalc(myPosition, currPiece, board);
-                return pawnCalc.getPossiblePositions();
-            case ChessPiece.PieceType.KNIGHT:
-                break;
-            case ChessPiece.PieceType.QUEEN:
-                break;
-        }
-
-        return null;
+        var currPiece = board.getPiece(myPosition);
+        var pieceCalc = new PieceMovesCalc(myPosition, currPiece, board);
+        return pieceCalc.getPossiblePositions();
     }
 
 
