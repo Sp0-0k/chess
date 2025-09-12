@@ -23,9 +23,9 @@ public class PieceMovesCalc {
             case ROOK -> {
                 return Rook.rookMoveCalc(curPiece, curPosition, board);
             }
-//            case KNIGHT -> {
-//                return Knight.knightMoveCalc(curPiece, curPosition, board);
-//            }
+            case KNIGHT -> {
+                return Knight.knightMoveCalc(curPiece, curPosition, board);
+            }
             case KING -> {
                 return King.kingMoveCalc(curPiece, curPosition, board);
             }
