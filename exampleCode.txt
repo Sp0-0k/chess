@@ -1,0 +1,35 @@
+September 16:
+
+Interface examples:
+
+public interface List<E> {
+    void add(int index, E element);
+    E remove(int index);
+    int size();
+    void clear();
+    ListIterator<E> listIterator();
+}
+
+public interface SymbolIterator {
+    /** Returns true if there is another symbol to iterate. */
+    boolean hasNext();
+    /** Returns the next symbol. */
+    char next();
+}
+
+Implements examples:
+
+public class CharIterator implements SymbolIterator {
+    int current = 0;
+    String charString = "abcdefg";
+
+    @Override
+    public boolean hasNext(){
+        return current < charString.length();
+    }
+
+    @Override
+    public char next(){
+        return charString.charAr(current++);
+    }
+}

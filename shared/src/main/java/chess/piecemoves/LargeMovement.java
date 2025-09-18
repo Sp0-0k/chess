@@ -8,16 +8,14 @@ import chess.ChessPosition;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LargeMovement {
-    private final ChessPiece myPiece;
-    private final ChessPosition myPosition;
-    private final ChessBoard board;
+public abstract class LargeMovement extends PieceMovesCalc {
+    private ChessPiece myPiece;
+    private ChessPosition myPosition;
+    private ChessBoard board;
     List<ChessMove> moves = new ArrayList<>();
 
-    public LargeMovement(ChessPiece myPiece, ChessPosition myPosition, ChessBoard board) {
-        this.myPiece = myPiece;
-        this.myPosition = myPosition;
-        this.board = board;
+    public LargeMovement(ChessPosition curPosition, ChessPiece curPiece, ChessBoard board) {
+        super(curPosition, curPiece, board);
     }
 
 

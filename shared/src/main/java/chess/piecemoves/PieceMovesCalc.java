@@ -7,7 +7,7 @@ import chess.ChessMove;
 
 import java.util.List;
 
-public class PieceMovesCalc {
+public abstract class PieceMovesCalc {
     ChessPosition curPosition;
     ChessPiece curPiece;
     ChessBoard board;
@@ -18,31 +18,6 @@ public class PieceMovesCalc {
         this.board = board;
     }
 
-    public List<ChessMove> getPossiblePositions() {
-        switch (curPiece.getPieceType()) {
-            case ROOK -> {
-                return Rook.rookMoveCalc(curPiece, curPosition, board);
-            }
-            case KNIGHT -> {
-                return Knight.knightMoveCalc(curPiece, curPosition, board);
-            }
-            case KING -> {
-                return King.kingMoveCalc(curPiece, curPosition, board);
-            }
-            case PAWN -> {
-                return Pawn.pawnMoveCalc(curPiece, curPosition, board);
-            }
-            case QUEEN -> {
-                return Queen.queenMoveCalc(curPiece, curPosition, board);
-            }
-            case BISHOP -> {
-                return Bishop.bishopMoveCalc(curPiece, curPosition, board);
-            }
-
-        }
-
-        return List.of();
-    }
-
+    public abstract List<ChessMove> getPossiblePositions();
 
 }
