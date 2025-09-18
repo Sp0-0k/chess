@@ -95,7 +95,7 @@ public abstract class LargeMovement extends PieceMovesCalc {
     }
 
 
-    public List<ChessMove> searchHorizonatals() {
+    public List<ChessMove> searchHorizontals() {
         moves.clear();
 
         //Upwards

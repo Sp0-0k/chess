@@ -16,7 +16,7 @@ public class Queen extends LargeMovement {
     public List<ChessMove> getPossiblePositions() {
         var listToReturn = new ArrayList<ChessMove>();
         listToReturn.addAll(searchDiagonals());
-        listToReturn.addAll(searchHorizonatals());
+        listToReturn.addAll(searchHorizontals());
         return listToReturn;
     }
 }

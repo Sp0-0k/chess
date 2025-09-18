@@ -16,6 +16,6 @@ public class Rook extends LargeMovement {
 
     @Override
     public List<ChessMove> getPossiblePositions() {
-        return searchHorizonatals();
+        return searchHorizontals();
     }
 }
