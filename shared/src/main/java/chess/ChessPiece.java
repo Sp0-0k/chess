@@ -56,7 +56,8 @@ public class ChessPiece {
         var currPiece = board.getPiece(myPosition);
         switch (currPiece.getPieceType()) {
             case ROOK -> {
-                return Rook.rookMoveCalc(currPiece, myPosition, board);
+                var rook = new Rook(myPosition, currPiece, board);
+                return rook.getPossiblePositions();
             }
             case KNIGHT -> {
                 return Knight.knightMoveCalc(currPiece, myPosition, board);
@@ -68,10 +69,12 @@ public class ChessPiece {
                 return Pawn.pawnMoveCalc(currPiece, myPosition, board);
             }
             case QUEEN -> {
-                return Queen.queenMoveCalc(currPiece, myPosition, board);
+                var queen = new Queen(myPosition, currPiece, board);
+                return queen.getPossiblePositions();
             }
             case BISHOP -> {
-                return Bishop.bishopMoveCalc(currPiece, myPosition, board);
+                var bishop = new Bishop(myPosition, currPiece, board);
+                return bishop.getPossiblePositions();
             }
 
         }
