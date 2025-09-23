@@ -8,30 +8,25 @@ import chess.ChessPosition;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LargeMovement {
-    private final ChessPiece myPiece;
-    private final ChessPosition myPosition;
-    private final ChessBoard board;
+public abstract class LargeMovement extends PieceMovesCalc {
     List<ChessMove> moves = new ArrayList<>();
 
-    public LargeMovement(ChessPiece myPiece, ChessPosition myPosition, ChessBoard board) {
-        this.myPiece = myPiece;
-        this.myPosition = myPosition;
-        this.board = board;
+    public LargeMovement(ChessPosition curPosition, ChessPiece curPiece, ChessBoard board) {
+        super(curPosition, curPiece, board);
     }
 
 
     public List<ChessMove> searchDiagonals() {
         moves.clear();
-        for (int i = myPosition.getRow() + 1; i < 9; ++i) {
-            int j = i - myPosition.getRow();
-            if (myPosition.getColumn() + j > 8 || j < 1 || i < 1) {
+        for (int i = curPosition.getRow() + 1; i < 9; ++i) {
+            int j = i - curPosition.getRow();
+            if (curPosition.getColumn() + j > 8 || j < 1 || i < 1) {
                 break;
             }
-            var nextDiagonal = new ChessPosition(i, myPosition.getColumn() + j);
-            var isValid = new CheckPosition(myPiece, nextDiagonal, board);
+            var nextDiagonal = new ChessPosition(i, curPosition.getColumn() + j);
+            var isValid = new CheckPosition(curPiece, nextDiagonal, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextDiagonal, null));
+                moves.add(new ChessMove(curPosition, nextDiagonal, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -40,15 +35,15 @@ public class LargeMovement {
                 break;
             }
         }
-        for (int i = myPosition.getRow() + 1; i < 9; ++i) {
-            int j = i - myPosition.getRow();
-            if (j > 8 || myPosition.getColumn() - j < 1 || i < 1) {
+        for (int i = curPosition.getRow() + 1; i < 9; ++i) {
+            int j = i - curPosition.getRow();
+            if (j > 8 || curPosition.getColumn() - j < 1 || i < 1) {
                 break;
             }
-            var nextDiagonal = new ChessPosition(i, myPosition.getColumn() - j);
-            var isValid = new CheckPosition(myPiece, nextDiagonal, board);
+            var nextDiagonal = new ChessPosition(i, curPosition.getColumn() - j);
+            var isValid = new CheckPosition(curPiece, nextDiagonal, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextDiagonal, null));
+                moves.add(new ChessMove(curPosition, nextDiagonal, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -57,16 +52,16 @@ public class LargeMovement {
                 break;
             }
         }
-        for (int i = myPosition.getRow() - 1; i > 0; --i) {
-            int j = i - myPosition.getRow();
+        for (int i = curPosition.getRow() - 1; i > 0; --i) {
+            int j = i - curPosition.getRow();
 
-            if ((myPosition.getColumn() - Math.abs(j)) < 1 || i > 8) {
+            if ((curPosition.getColumn() - Math.abs(j)) < 1 || i > 8) {
                 break;
             }
-            var nextDiagonal = new ChessPosition(i, myPosition.getColumn() - Math.abs(j));
-            var isValid = new CheckPosition(myPiece, nextDiagonal, board);
+            var nextDiagonal = new ChessPosition(i, curPosition.getColumn() - Math.abs(j));
+            var isValid = new CheckPosition(curPiece, nextDiagonal, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextDiagonal, null));
+                moves.add(new ChessMove(curPosition, nextDiagonal, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -75,15 +70,15 @@ public class LargeMovement {
                 break;
             }
         }
-        for (int i = myPosition.getRow() - 1; i > 0; --i) {
-            int j = i - myPosition.getRow();
-            if ((myPosition.getColumn() + Math.abs(j)) > 8 || i > 8) {
+        for (int i = curPosition.getRow() - 1; i > 0; --i) {
+            int j = i - curPosition.getRow();
+            if ((curPosition.getColumn() + Math.abs(j)) > 8 || i > 8) {
                 break;
             }
-            var nextDiagonal = new ChessPosition(i, myPosition.getColumn() + Math.abs(j));
-            var isValid = new CheckPosition(myPiece, nextDiagonal, board);
+            var nextDiagonal = new ChessPosition(i, curPosition.getColumn() + Math.abs(j));
+            var isValid = new CheckPosition(curPiece, nextDiagonal, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextDiagonal, null));
+                moves.add(new ChessMove(curPosition, nextDiagonal, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -97,15 +92,15 @@ public class LargeMovement {
     }
 
 
-    public List<ChessMove> searchHorizonatals() {
+    public List<ChessMove> searchHorizontals() {
         moves.clear();
 
         //Upwards
-        for (int i = myPosition.getRow() + 1; i < 9; ++i) {
-            var nextLocation = new ChessPosition(i, myPosition.getColumn());
-            var isValid = new CheckPosition(myPiece, nextLocation, board);
+        for (int i = curPosition.getRow() + 1; i < 9; ++i) {
+            var nextLocation = new ChessPosition(i, curPosition.getColumn());
+            var isValid = new CheckPosition(curPiece, nextLocation, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextLocation, null));
+                moves.add(new ChessMove(curPosition, nextLocation, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -115,11 +110,11 @@ public class LargeMovement {
             }
         }
         //Downwards
-        for (int i = myPosition.getRow() - 1; i > 0; --i) {
-            var nextLocation = new ChessPosition(i, myPosition.getColumn());
-            var isValid = new CheckPosition(myPiece, nextLocation, board);
+        for (int i = curPosition.getRow() - 1; i > 0; --i) {
+            var nextLocation = new ChessPosition(i, curPosition.getColumn());
+            var isValid = new CheckPosition(curPiece, nextLocation, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextLocation, null));
+                moves.add(new ChessMove(curPosition, nextLocation, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -129,11 +124,11 @@ public class LargeMovement {
             }
         }
         //Right
-        for (int i = myPosition.getColumn() + 1; i < 9; ++i) {
-            var nextLocation = new ChessPosition(myPosition.getRow(), i);
-            var isValid = new CheckPosition(myPiece, nextLocation, board);
+        for (int i = curPosition.getColumn() + 1; i < 9; ++i) {
+            var nextLocation = new ChessPosition(curPosition.getRow(), i);
+            var isValid = new CheckPosition(curPiece, nextLocation, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextLocation, null));
+                moves.add(new ChessMove(curPosition, nextLocation, null));
                 if (isValid.isCapturable()) {
                     break;
                 }
@@ -143,11 +138,11 @@ public class LargeMovement {
             }
         }
         //Left
-        for (int i = myPosition.getColumn() - 1; i > 0; --i) {
-            var nextLocation = new ChessPosition(myPosition.getRow(), i);
-            var isValid = new CheckPosition(myPiece, nextLocation, board);
+        for (int i = curPosition.getColumn() - 1; i > 0; --i) {
+            var nextLocation = new ChessPosition(curPosition.getRow(), i);
+            var isValid = new CheckPosition(curPiece, nextLocation, board);
             if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(myPosition, nextLocation, null));
+                moves.add(new ChessMove(curPosition, nextLocation, null));
                 if (isValid.isCapturable()) {
                     break;
                 }

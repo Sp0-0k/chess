@@ -7,9 +7,15 @@ import chess.ChessPosition;
 
 import java.util.List;
 
-public class Rook {
-    public static List<ChessMove> rookMoveCalc(ChessPiece curPiece, ChessPosition curPosition, ChessBoard board) {
-        var moves = new LargeMovement(curPiece, curPosition, board);
-        return moves.searchHorizonatals();
+public class Rook extends LargeMovement {
+
+
+    public Rook(ChessPosition curPosition, ChessPiece curPiece, ChessBoard board) {
+        super(curPosition, curPiece, board);
+    }
+
+    @Override
+    public List<ChessMove> getPossiblePositions() {
+        return searchHorizontals();
     }
 }

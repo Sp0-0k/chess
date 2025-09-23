@@ -1,11 +1,8 @@
 package chess;
 
-import chess.piecemoves.PieceMovesCalc;
+import chess.piecemoves.*;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Represents a single chess piece
@@ -57,8 +54,31 @@ public class ChessPiece {
      */
     public List<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         var currPiece = board.getPiece(myPosition);
-        var pieceCalc = new PieceMovesCalc(myPosition, currPiece, board);
-        return pieceCalc.getPossiblePositions();
+        switch (currPiece.getPieceType()) {
+            case ROOK -> {
+                var rook = new Rook(myPosition, currPiece, board);
+                return rook.getPossiblePositions();
+            }
+            case KNIGHT -> {
+                return Knight.knightMoveCalc(currPiece, myPosition, board);
+            }
+            case KING -> {
+                return King.kingMoveCalc(currPiece, myPosition, board);
+            }
+            case PAWN -> {
+                return Pawn.pawnMoveCalc(currPiece, myPosition, board);
+            }
+            case QUEEN -> {
+                var queen = new Queen(myPosition, currPiece, board);
+                return queen.getPossiblePositions();
+            }
+            case BISHOP -> {
+                var bishop = new Bishop(myPosition, currPiece, board);
+                return bishop.getPossiblePositions();
+            }
+
+        }
+        return new ArrayList<>();
     }
 
 

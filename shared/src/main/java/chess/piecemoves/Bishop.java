@@ -7,11 +7,15 @@ import chess.ChessPosition;
 
 import java.util.List;
 
-public class Bishop {
+public class Bishop extends LargeMovement {
 
 
-    public static List<ChessMove> bishopMoveCalc(ChessPiece curPiece, ChessPosition curPosition, ChessBoard board) {
-        var moves = new LargeMovement(curPiece, curPosition, board);
-        return moves.searchDiagonals();
+    public Bishop(ChessPosition curPosition, ChessPiece curPiece, ChessBoard board) {
+        super(curPosition, curPiece, board);
+    }
+
+    @Override
+    public List<ChessMove> getPossiblePositions() {
+        return searchDiagonals();
     }
 }
