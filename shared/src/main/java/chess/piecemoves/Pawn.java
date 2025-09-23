@@ -11,15 +11,10 @@ public class Pawn {
     public static List<ChessMove> pawnMoveCalc(ChessPiece myPiece, ChessPosition myPosition, ChessBoard board) {
         moves.clear();
         ChessGame.TeamColor color = board.getPiece(myPosition).getTeamColor();
-        int colorDif;
+        int colorDif = (color == ChessGame.TeamColor.WHITE) ? 1 : -1;
         var myColumn = myPosition.getColumn();
         var myRow = myPosition.getRow();
         var myIndex = new ChessPosition(myRow, myColumn);
-        if (color == ChessGame.TeamColor.WHITE) {
-            colorDif = 1;
-        } else {
-            colorDif = -1;
-        }
 
         if (myColumn != 1) {
             var leftCapture = new ChessPosition(myRow + colorDif, myColumn - 1);
