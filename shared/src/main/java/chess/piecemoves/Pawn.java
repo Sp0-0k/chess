@@ -10,70 +10,47 @@ public class Pawn {
 
     public static List<ChessMove> pawnMoveCalc(ChessPiece myPiece, ChessPosition myPosition, ChessBoard board) {
         moves.clear();
+        ChessGame.TeamColor color = board.getPiece(myPosition).getTeamColor();
+        int colorDif;
         var myColumn = myPosition.getColumn();
         var myRow = myPosition.getRow();
         var myIndex = new ChessPosition(myRow, myColumn);
-        if (myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) {
-            if (myColumn != 1) {
-                var leftCapture = new ChessPosition(myRow + 1, myColumn - 1);
-                var leftValidSpot = new CheckPosition(myPiece, leftCapture, board);
-                if (leftValidSpot.isCapturable()) {
-                    addMove(myIndex, leftCapture);
-                }
-            }
-            var oneAhead = new ChessPosition(myRow + 1, myColumn);
-            var forwardValidSpot = new CheckPosition(myPiece, oneAhead, board);
-            if (!forwardValidSpot.isOccupied()) {
-                addMove(myIndex, oneAhead);
-                if ((myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) && (myRow == 2)) {
-                    var twoAhead = new ChessPosition(myRow + 2, myColumn);
-                    var nextValidSpot = new CheckPosition(myPiece, twoAhead, board);
-                    if (!nextValidSpot.isOccupied()) {
-                        addMove(myIndex, twoAhead);
-                    }
-                }
-            }
+        if (color == ChessGame.TeamColor.WHITE) {
+            colorDif = 1;
+        } else {
+            colorDif = -1;
+        }
 
-            if (myColumn != 8) {
-                var rightCapture = new ChessPosition(myRow + 1, myColumn + 1);
-                var rightValidSpot = new CheckPosition(myPiece, rightCapture, board);
-                if (rightValidSpot.isCapturable()) {
-                    addMove(myIndex, rightCapture);
-                }
-
+        if (myColumn != 1) {
+            var leftCapture = new ChessPosition(myRow + colorDif, myColumn - 1);
+            var leftValidSpot = new CheckPosition(myPiece, leftCapture, board);
+            if (leftValidSpot.isCapturable()) {
+                addMove(myIndex, leftCapture);
             }
         }
 
-        if (myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) {
-            if (myColumn != 1) {
-                var leftCapture = new ChessPosition(myRow - 1, myColumn - 1);
-                var leftValidSpot = new CheckPosition(myPiece, leftCapture, board);
-                if (leftValidSpot.isCapturable()) {
-                    addMove(myIndex, leftCapture);
+        var oneAhead = new ChessPosition(myRow + colorDif, myColumn);
+        var forwardValidSpot = new CheckPosition(myPiece, oneAhead, board);
+        if (!forwardValidSpot.isOccupied()) {
+            addMove(myIndex, oneAhead);
+            if ((myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) && (myRow == 2) || (myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) && (myRow == 7)) {
+                var twoAhead = new ChessPosition(myRow + (colorDif * 2), myColumn);
+                var nextValidSpot = new CheckPosition(myPiece, twoAhead, board);
+                if (!nextValidSpot.isOccupied()) {
+                    addMove(myIndex, twoAhead);
                 }
-            }
-            var oneAhead = new ChessPosition(myRow - 1, myColumn);
-            var forwardValidSpot = new CheckPosition(myPiece, oneAhead, board);
-            if (!forwardValidSpot.isOccupied()) {
-                addMove(myIndex, oneAhead);
-                if ((myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) && (myRow == 7)) {
-                    var twoAhead = new ChessPosition(myRow - 2, myColumn);
-                    var nextValidSpot = new CheckPosition(myPiece, twoAhead, board);
-                    if (!nextValidSpot.isOccupied()) {
-                        addMove(myIndex, twoAhead);
-                    }
-                }
-            }
-
-            if (myColumn != 8) {
-                var rightCapture = new ChessPosition(myRow - 1, myColumn + 1);
-                var rightValidSpot = new CheckPosition(myPiece, rightCapture, board);
-                if (rightValidSpot.isCapturable()) {
-                    addMove(myIndex, rightCapture);
-                }
-
             }
         }
+
+        if (myColumn != 8) {
+            var rightCapture = new ChessPosition(myRow + colorDif, myColumn + 1);
+            var rightValidSpot = new CheckPosition(myPiece, rightCapture, board);
+            if (rightValidSpot.isCapturable()) {
+                addMove(myIndex, rightCapture);
+            }
+
+        }
+
 
         return moves;
     }
