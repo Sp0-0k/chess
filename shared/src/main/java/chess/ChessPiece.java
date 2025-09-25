@@ -54,7 +54,7 @@ public class ChessPiece {
      */
     public List<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         var currPiece = board.getPiece(myPosition);
-        switch (currPiece.getPieceType()) {
+        switch (type) {
             case ROOK -> {
                 var rook = new Rook(myPosition, currPiece, board);
                 return rook.getPossiblePositions();
@@ -78,7 +78,7 @@ public class ChessPiece {
             }
 
         }
-        return new ArrayList<>();
+        return null;
     }
 
 

@@ -27,6 +27,14 @@ public class ChessBoard {
         board[position.getRow() - 1][position.getColumn() - 1] = piece;
     }
 
+    public void movePiece(ChessMove move) {
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
+        ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
+        board[start.getRow() - 1][start.getColumn() - 1] = null;
+        board[end.getRow() - 1][end.getColumn() - 1] = piece;
+    }
+
     /**
      * Gets a chess piece on the chessboard
      *
@@ -170,5 +178,16 @@ public class ChessBoard {
             }
             System.out.print("\n");
         }
+    }
+
+    public ChessPosition findPiece(ChessPiece pieceToFind) {
+        for (int i = 0; i < 8; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                if (getPiece(new ChessPosition(i, j)) == pieceToFind) {
+                    return new ChessPosition(i, j);
+                }
+            }
+        }
+        return null;
     }
 }
