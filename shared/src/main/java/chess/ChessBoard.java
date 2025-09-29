@@ -32,7 +32,12 @@ public class ChessBoard {
         ChessPosition end = move.getEndPosition();
         ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
         board[start.getRow() - 1][start.getColumn() - 1] = null;
-        board[end.getRow() - 1][end.getColumn() - 1] = piece;
+        if (move.getPromotionPiece() == null) {
+            board[end.getRow() - 1][end.getColumn() - 1] = piece;
+        } else {
+            var promotionPiece = new ChessPiece(piece.pieceColor, move.getPromotionPiece());
+            board[end.getRow() - 1][end.getColumn() - 1] = promotionPiece;
+        }
     }
 
     /**
@@ -183,8 +188,10 @@ public class ChessBoard {
     public ChessPosition findPiece(ChessPiece pieceToFind) {
         for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
-                if (getPiece(new ChessPosition(i, j)) == pieceToFind) {
-                    return new ChessPosition(i, j);
+                if (getPiece(new ChessPosition(i + 1, j + 1)) != null) {
+                    if (getPiece(new ChessPosition(i + 1, j + 1)).equals(pieceToFind)) {
+                        return new ChessPosition(i + 1, j + 1);
+                    }
                 }
             }
         }
