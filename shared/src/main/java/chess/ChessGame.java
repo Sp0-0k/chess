@@ -140,7 +140,7 @@ public class ChessGame {
         return isPieceDanger(kingLocation, oppositeTeam, board);
     }
 
-    public boolean noValidMoves(TeamColor teamToCheck, ChessBoard boardState) {
+    public boolean noValidMoves(TeamColor teamToCheck) {
         for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
                 ChessPosition posToCheck = new ChessPosition(i + 1, j + 1);
@@ -164,7 +164,7 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         if (isInCheck(teamColor)) {
-            return noValidMoves(teamColor, this.currBoard);
+            return noValidMoves(teamColor);
         }
         return false;
     }
@@ -180,7 +180,7 @@ public class ChessGame {
         if (isInCheck(teamColor)) {
             return false;
         }
-        return noValidMoves(teamColor, this.currBoard);
+        return noValidMoves(teamColor);
     }
 
     /**
