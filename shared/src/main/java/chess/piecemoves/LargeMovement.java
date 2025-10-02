@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class LargeMovement extends PieceMovesCalc {
-    List<ChessMove> moves = new ArrayList<>();
 
     public LargeMovement(ChessPosition curPosition, ChessPiece curPiece, ChessBoard board) {
         super(curPosition, curPiece, board);
@@ -17,7 +16,7 @@ public abstract class LargeMovement extends PieceMovesCalc {
 
 
     public List<ChessMove> searchDiagonals() {
-        moves.clear();
+        List<ChessMove> moves = new ArrayList<>();
         for (int i = curPosition.getRow() + 1; i < 9; ++i) {
             int j = i - curPosition.getRow();
             if (curPosition.getColumn() + j > 8 || j < 1 || i < 1) {
@@ -93,7 +92,7 @@ public abstract class LargeMovement extends PieceMovesCalc {
 
 
     public List<ChessMove> searchHorizontals() {
-        moves.clear();
+        List<ChessMove> moves = new ArrayList<>();
 
         //Upwards
         for (int i = curPosition.getRow() + 1; i < 9; ++i) {

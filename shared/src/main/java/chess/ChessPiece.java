@@ -31,6 +31,10 @@ public class ChessPiece {
         PAWN
     }
 
+    public void setPieceType(PieceType type) {
+        this.type = type;
+    }
+
     /**
      * @return Which team this chess piece belongs to
      */

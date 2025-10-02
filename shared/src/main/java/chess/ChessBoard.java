@@ -11,10 +11,22 @@ import java.util.Objects;
  */
 public class ChessBoard {
 
-    private final ChessPiece[][] board = new ChessPiece[8][8];
+    public ChessPiece[][] board = new ChessPiece[8][8];
 
     public ChessBoard() {
 
+    }
+
+    public ChessBoard(ChessBoard other) {
+        this.board = new ChessPiece[8][8];
+        for (int i = 0; i < 8; ++i) {
+            for (int j = 0; j < 8; ++j) {
+                ChessPiece piece = other.board[i][j];
+                if (piece != null) {
+                    this.board[i][j] = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+                }
+            }
+        }
     }
 
     /**
@@ -30,14 +42,15 @@ public class ChessBoard {
     public void movePiece(ChessMove move) {
         ChessPosition start = move.getStartPosition();
         ChessPosition end = move.getEndPosition();
-        ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
-        board[start.getRow() - 1][start.getColumn() - 1] = null;
-        if (move.getPromotionPiece() == null) {
-            board[end.getRow() - 1][end.getColumn() - 1] = piece;
-        } else {
-            var promotionPiece = new ChessPiece(piece.pieceColor, move.getPromotionPiece());
-            board[end.getRow() - 1][end.getColumn() - 1] = promotionPiece;
+        if (getPiece(start) == null) {
+            return;
         }
+        ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
+        if (move.getPromotionPiece() != null) {
+            piece.setPieceType(move.getPromotionPiece());
+        }
+        board[start.getRow() - 1][start.getColumn() - 1] = null;
+        board[end.getRow() - 1][end.getColumn() - 1] = piece;
     }
 
     /**
@@ -198,3 +211,5 @@ public class ChessBoard {
         return null;
     }
 }
+
+
