@@ -140,20 +140,20 @@ public class ChessGame {
         return isPieceDanger(kingLocation, oppositeTeam, board);
     }
 
-    public boolean hasValidMove(TeamColor teamToCheck, ChessBoard boardState) {
+    public boolean noValidMoves(TeamColor teamToCheck, ChessBoard boardState) {
         for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
-                ChessPosition pos = new ChessPosition(i + 1, j + 1);
-                ChessPiece piece = currBoard.getPiece(pos);
+                ChessPosition posToCheck = new ChessPosition(i + 1, j + 1);
+                ChessPiece piece = currBoard.getPiece(posToCheck);
                 if (piece != null && piece.getTeamColor() == teamToCheck) {
-                    Collection<ChessMove> moves = validMoves(pos);
+                    Collection<ChessMove> moves = validMoves(posToCheck);
                     if (moves != null && !moves.isEmpty()) {
-                        return true; // Found a valid move
+                        return false; // Found a valid move
                     }
                 }
             }
         }
-        return false;
+        return true;
     }
 
     /**
@@ -164,7 +164,7 @@ public class ChessGame {
      */
     public boolean isInCheckmate(TeamColor teamColor) {
         if (isInCheck(teamColor)) {
-            return !hasValidMove(teamColor, this.currBoard);
+            return noValidMoves(teamColor, this.currBoard);
         }
         return false;
     }
@@ -180,7 +180,7 @@ public class ChessGame {
         if (isInCheck(teamColor)) {
             return false;
         }
-        return !hasValidMove(teamColor, this.currBoard);
+        return noValidMoves(teamColor, this.currBoard);
     }
 
     /**
