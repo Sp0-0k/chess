@@ -1,8 +1,11 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
+import service.AlreadyTakenException;
+import service.Service;
 
 import java.util.Map;
 
@@ -11,8 +14,12 @@ public class Server {
     //TODO: Create Service, write two unit tests for every method, one passing on fail
 
     private final Javalin server;
+    private final Service userService;
 
     public Server() {
+        var dataAccess = new MemoryDataAccess();
+        userService = new Service(dataAccess);
+
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", ctx -> ctx.result("{}"));
         server.post("user", this::register); //Can be ctx -> register(ctx)
@@ -46,23 +53,19 @@ public class Server {
 
     //Register Handler
     private void register(Context ctx) {
-        var serializer = new Gson();
-        String reqJson = ctx.body();
-        var req = serializer.fromJson(reqJson, Map.class);
-
-        if (req.containsValue("username") && req.containsValue("password")) {
-
-
-            // TODO: Call to the service and register
-
-
-            //FIXME: Generate authToken from service not hardcoded
-            var res = Map.of("username", req.get("username"), "authToken", "yzx");
-            ;
-            ctx.result(serializer.toJson(res));
-        } else {
-            var res = Map.of("message", "Error: unauthorized");
-            ctx.status(400);
+        try {
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var req = serializer.fromJson(reqJson, Map.class);
+            String username = req.get("username").toString();
+            String password = req.get("password").toString();
+            String email = req.get("email").toString();
+            var authData = userService.register(username, password, email);
+            ctx.status(200).result(serializer.toJson(authData));
+        } catch (AlreadyTakenException ex) {
+            var res = Map.of("message", ex.getMessage());
+            ctx.status(403);
+            var serializer = new Gson();
             ctx.result(serializer.toJson(res));
         }
     }
