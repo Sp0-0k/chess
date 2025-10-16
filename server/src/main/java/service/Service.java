@@ -36,7 +36,7 @@ public class Service {
 
     public AuthData login(String username, String password) throws ServiceException {
         if (dataAccess.getUser(username) == null) {
-            throw new ServiceException("Error: bad request");
+            throw new ServiceException("Error: unauthorized");
         } else if (!Objects.equals(dataAccess.getUser(username).password(), password)) {
             throw new ServiceException("Error: unauthorized");
         } else {
@@ -46,5 +46,9 @@ public class Service {
             dataAccess.addAuthData(newAuthData);
             return newAuthData;
         }
+    }
+
+    public void clear() {
+        dataAccess.clear();
     }
 }

@@ -22,14 +22,19 @@ public class Server {
         userService = new Service(dataAccess);
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
-        server.delete("db", ctx -> ctx.result("{}"));
+        server.delete("db", this::delete);
         server.post("user", this::register); //Can be ctx -> register(ctx)
         server.post("session", this::login);
+        server.delete("session", this::logout);
 
         //TODO: Register your endpoints and exception handlers here.
 
     }
 
+    private void logout(Context context) {
+    }
+
+    //Login Handler
     private void login(Context ctx) {
         try {
             var serializer = new Gson();
@@ -50,7 +55,7 @@ public class Server {
         } catch (ServiceException ex) {
             var res = Map.of("message", ex.getMessage());
             if (Objects.equals(ex.getMessage(), "Error: bad request")) {
-                ctx.status(401);
+                ctx.status(400);
             } else {
                 ctx.status(401);
             }
@@ -82,6 +87,10 @@ public class Server {
             var serializer = new Gson();
             ctx.result(serializer.toJson(res));
         }
+    }
+
+    private void delete(Context ctx) {
+        userService.clear();
     }
 
 
