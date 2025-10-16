@@ -4,10 +4,11 @@ import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
 import io.javalin.*;
 import io.javalin.http.Context;
-import service.AlreadyTakenException;
+import service.ServiceException;
 import service.Service;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class Server {
 
@@ -30,23 +31,30 @@ public class Server {
     }
 
     private void login(Context ctx) {
-        var serializer = new Gson();
-        String reqJson = ctx.body();
-        var req = serializer.fromJson(reqJson, Map.class);
+        try {
+            var serializer = new Gson();
+            String reqJson = ctx.body();
+            var req = serializer.fromJson(reqJson, Map.class);
 
-        //TODO: Calls to the service and get authToken
-        if (req.containsValue("username") && req.containsValue("password")) {
+            if (req.containsKey("username") && req.containsKey("password")) {
 
-
-            // TODO: Call to the service and register
-
-
-            //FIXME: Generate authToken from service not hardcoded
-            var res = Map.of("username", req.get("username"), "authToken", "yzx");
-            ctx.result(serializer.toJson(res));
-        } else {
-            var res = Map.of("message", "Error: bad request");
-            ctx.status(400);
+                String username = req.get("username").toString();
+                String password = req.get("password").toString();
+                var authData = userService.login(username, password);
+                ctx.result(serializer.toJson(authData));
+            } else {
+                var res = Map.of("message", "Error: bad request");
+                ctx.status(400);
+                ctx.result(serializer.toJson(res));
+            }
+        } catch (ServiceException ex) {
+            var res = Map.of("message", ex.getMessage());
+            if (Objects.equals(ex.getMessage(), "Error: bad request")) {
+                ctx.status(401);
+            } else {
+                ctx.status(401);
+            }
+            var serializer = new Gson();
             ctx.result(serializer.toJson(res));
         }
     }
@@ -57,12 +65,18 @@ public class Server {
             var serializer = new Gson();
             String reqJson = ctx.body();
             var req = serializer.fromJson(reqJson, Map.class);
+            if (!req.containsKey("username") || !req.containsKey("password") || !req.containsKey("email")) {
+                var res = Map.of("message", "Error: bad request");
+                ctx.status(400);
+                ctx.result(serializer.toJson(res));
+                return;
+            }
             String username = req.get("username").toString();
             String password = req.get("password").toString();
             String email = req.get("email").toString();
             var authData = userService.register(username, password, email);
             ctx.status(200).result(serializer.toJson(authData));
-        } catch (AlreadyTakenException ex) {
+        } catch (ServiceException ex) {
             var res = Map.of("message", ex.getMessage());
             ctx.status(403);
             var serializer = new Gson();

@@ -3,6 +3,8 @@ package service;
 import dataaccess.DataAccesser;
 import datamodel.*;
 
+import java.util.Objects;
+
 public class Service {
     private final DataAccesser dataAccess;
 
@@ -11,24 +13,38 @@ public class Service {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(String username, String password, String email) throws AlreadyTakenException {
+    public AuthData register(String username, String password, String email) throws ServiceException {
         if (dataAccess.getUser(username) == null) {
             var userToAdd = new UserData(username, password, email);
             createUser(userToAdd);
-            //TODO: Add generateAuthToken();
-            var tempAuthData = new AuthData("xyz", username);
+            var tempAuthData = new AuthData(generateAuthToken(username), username);
             dataAccess.addAuthData(tempAuthData);
             return tempAuthData;
         } else {
-            throw new AlreadyTakenException("Error: username already take");
+            throw new ServiceException("Error: username already taken");
         }
     }
 
-    private void generateAuthToken() {
+    private String generateAuthToken(String username) {
+        return "xyz";
     }
 
 
     public void createUser(UserData data) {
-        //dataAccess.addUserData(data);
+        dataAccess.createUser(data);
+    }
+
+    public AuthData login(String username, String password) throws ServiceException {
+        if (dataAccess.getUser(username) == null) {
+            throw new ServiceException("Error: bad request");
+        } else if (!Objects.equals(dataAccess.getUser(username).password(), password)) {
+            throw new ServiceException("Error: unauthorized");
+        } else {
+            var oldAuthData = dataAccess.getAuthData(username);
+            dataAccess.removeAuthData(oldAuthData);
+            var newAuthData = new AuthData(generateAuthToken(username), username);
+            dataAccess.addAuthData(newAuthData);
+            return newAuthData;
+        }
     }
 }

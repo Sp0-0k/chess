@@ -11,4 +11,8 @@ public interface DataAccesser {
     void clear();
 
     void addAuthData(AuthData authData);
+
+    void removeAuthData(AuthData authData);
+
+    AuthData getAuthData(String username);
 }

@@ -22,10 +22,21 @@ public class MemoryDataAccess implements DataAccesser {
     @Override
     public void clear() {
         users.clear();
+        authTokens.clear();
     }
 
     @Override
     public void addAuthData(AuthData authData) {
         authTokens.put(authData.username(), authData);
+    }
+
+    @Override
+    public void removeAuthData(AuthData authData) {
+        authTokens.remove(authData.username(), authData);
+    }
+
+    @Override
+    public AuthData getAuthData(String username) {
+        return authTokens.get(username);
     }
 }
