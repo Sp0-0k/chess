@@ -16,9 +16,11 @@ public class Server {
 
     private final Javalin server;
     private final Service userService;
+    private final Gson serializer;
 
     public Server() {
         var dataAccess = new MemoryDataAccess();
+        this.serializer = new Gson();
         userService = new Service(dataAccess);
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
@@ -26,18 +28,26 @@ public class Server {
         server.post("user", this::register); //Can be ctx -> register(ctx)
         server.post("session", this::login);
         server.delete("session", this::logout);
+        server.get("game", this::listGames);
 
         //TODO: Register your endpoints and exception handlers here.
 
     }
 
-    private void logout(Context context) {
+    private void logout(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            userService.logout(authToken);
+            ctx.result("{ }");
+        } catch (ServiceException ex) {
+            sendError(ex.getMessage(), 401, ctx);
+
+        }
     }
 
     //Login Handler
     private void login(Context ctx) {
         try {
-            var serializer = new Gson();
             String reqJson = ctx.body();
             var req = serializer.fromJson(reqJson, Map.class);
 
@@ -48,18 +58,15 @@ public class Server {
                 var authData = userService.login(username, password);
                 ctx.result(serializer.toJson(authData));
             } else {
-                var res = Map.of("message", "Error: bad request");
-                ctx.status(400);
-                ctx.result(serializer.toJson(res));
+                sendError("Error: bad request", 400, ctx);
             }
         } catch (ServiceException ex) {
             var res = Map.of("message", ex.getMessage());
             if (Objects.equals(ex.getMessage(), "Error: bad request")) {
-                ctx.status(400);
+                sendError("Error: bad request", 400, ctx);
             } else {
-                ctx.status(401);
+                sendError(ex.getMessage(), 401, ctx);
             }
-            var serializer = new Gson();
             ctx.result(serializer.toJson(res));
         }
     }
@@ -67,13 +74,10 @@ public class Server {
     //Register Handler
     private void register(Context ctx) {
         try {
-            var serializer = new Gson();
             String reqJson = ctx.body();
             var req = serializer.fromJson(reqJson, Map.class);
             if (!req.containsKey("username") || !req.containsKey("password") || !req.containsKey("email")) {
-                var res = Map.of("message", "Error: bad request");
-                ctx.status(400);
-                ctx.result(serializer.toJson(res));
+                sendError("Error: bad request", 400, ctx);
                 return;
             }
             String username = req.get("username").toString();
@@ -82,15 +86,16 @@ public class Server {
             var authData = userService.register(username, password, email);
             ctx.status(200).result(serializer.toJson(authData));
         } catch (ServiceException ex) {
-            var res = Map.of("message", ex.getMessage());
-            ctx.status(403);
-            var serializer = new Gson();
-            ctx.result(serializer.toJson(res));
+            sendError(ex.getMessage(), 403, ctx);
         }
     }
 
     private void delete(Context ctx) {
         userService.clear();
+    }
+
+    private void listGames(Context ctx) {
+
     }
 
 
@@ -101,5 +106,11 @@ public class Server {
 
     public void stop() {
         server.stop();
+    }
+
+
+    private void sendError(String message, int errorCode, Context ctx) {
+        var res = Map.of("message", message);
+        ctx.status(errorCode).result(serializer.toJson(res));
     }
 }

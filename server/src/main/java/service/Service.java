@@ -40,8 +40,6 @@ public class Service {
         } else if (!Objects.equals(dataAccess.getUser(username).password(), password)) {
             throw new ServiceException("Error: unauthorized");
         } else {
-            var oldAuthData = dataAccess.getAuthData(username);
-            dataAccess.removeAuthData(oldAuthData);
             var newAuthData = new AuthData(generateAuthToken(username), username);
             dataAccess.addAuthData(newAuthData);
             return newAuthData;
@@ -51,4 +49,15 @@ public class Service {
     public void clear() {
         dataAccess.clear();
     }
+
+    public void logout(String authToken) throws ServiceException {
+        if (dataAccess.getAuthData(authToken) != null) {
+            var oldAuthData = dataAccess.getAuthData(authToken);
+            dataAccess.removeAuthData(oldAuthData);
+        } else {
+            throw new ServiceException("Error: unauthorized");
+        }
+    }
+
+
 }
