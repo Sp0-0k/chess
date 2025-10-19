@@ -21,4 +21,6 @@ public interface DataAccesser {
     void addGameData(GameData newGameData);
 
     GameData getGame(int gameID);
+
+    void removeGame(int gameID);
 }

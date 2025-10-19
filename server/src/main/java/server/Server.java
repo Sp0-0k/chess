@@ -32,6 +32,7 @@ public class Server {
         server.delete("session", this::logout);
         server.get("game", this::listGames);
         server.post("game", this::createGame);
+        server.put("game", this::joinGame);
 
         //TODO: Register your endpoints and exception handlers here.
 
@@ -128,6 +129,27 @@ public class Server {
             int errorCode = (Objects.equals(ex.getMessage(), "Error: bad request")) ? 400 : 401;
             sendError(ex.getMessage(), errorCode, ctx);
         }
+    }
+
+    private void joinGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            String reqJson = ctx.body();
+            var req = serializer.fromJson(reqJson, Map.class);
+            if (!req.containsKey("gameID") || !req.containsKey("playerColor") || (!(Objects.equals(req.get("playerColor").toString(), "WHITE")) && !(Objects.equals(req.get("playerColor").toString(), "BLACK")))) {
+                sendError("Error: bad request", 400, ctx);
+                return;
+            }
+            Number idNumber = (Number) req.get("gameID");
+            int gameID = idNumber.intValue();
+            userService.joinGame(gameID, req.get("playerColor").toString(), authToken);
+            ctx.status(200).result("{ }");
+
+        } catch (ServiceException ex) {
+            int errorCode = (Objects.equals(ex.getMessage(), "Error: already taken")) ? 403 : 401;
+            sendError(ex.getMessage(), errorCode, ctx);
+        }
+
     }
 
     public int run(int desiredPort) {

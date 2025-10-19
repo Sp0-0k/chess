@@ -25,6 +25,7 @@ public class MemoryDataAccess implements DataAccesser {
     public void clear() {
         users.clear();
         authTokens.clear();
+        gameList.clear();
     }
 
     @Override
@@ -58,5 +59,10 @@ public class MemoryDataAccess implements DataAccesser {
             return gameList.get(gameID);
         }
         return null;
+    }
+
+    @Override
+    public void removeGame(int gameID) {
+        gameList.remove(gameID);
     }
 }

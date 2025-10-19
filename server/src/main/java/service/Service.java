@@ -5,12 +5,14 @@ import dataaccess.DataAccesser;
 import datamodel.*;
 
 import java.util.Objects;
+import java.util.Random;
 
 public class Service {
     private final DataAccesser dataAccess;
+    private final Random random;
 
     public Service(DataAccesser dataAccess) {
-
+        random = new Random();
         this.dataAccess = dataAccess;
     }
 
@@ -27,7 +29,7 @@ public class Service {
     }
 
     private String generateAuthToken(String username) {
-        return "xyz";
+        return username.concat("AuthToken" + Math.abs(random.nextInt(100000)));
     }
 
 
@@ -84,10 +86,36 @@ public class Service {
     }
 
     private GameData generateGameData(String gameName) {
-        int gameID = gameName.hashCode();
-        if (gameID < 0) {
-            gameID *= -1;
+        int gameID = Math.abs(gameName.hashCode() % 9999999);
+        return new GameData(gameID, null, null, gameName, new ChessGame());
+    }
+
+    public void joinGame(int gameID, String playerColor, String authToken) throws ServiceException {
+        int gameToJoin = gameID;
+        if (dataAccess.getGame(gameToJoin) == null) {
+            throw new ServiceException("Error: bad request");
         }
-        return new GameData(gameID, "", "", gameName, new ChessGame());
+        if (dataAccess.getAuthData(authToken) == null) {
+            throw new ServiceException("Error: unauthorized");
+        }
+        var usernameToSet = dataAccess.getAuthData(authToken).username();
+        var originalGameData = dataAccess.getGame(gameToJoin);
+        GameData updatedGame;
+        if (Objects.equals(playerColor, "WHITE")) {
+            if (originalGameData.whiteUsername() == null) {
+                updatedGame = new GameData(gameToJoin, usernameToSet, originalGameData.blackUsername(), originalGameData.gameName(), originalGameData.game());
+            } else {
+                throw new ServiceException("Error: already taken");
+            }
+        } else {
+            if (originalGameData.blackUsername() == null) {
+                updatedGame = new GameData(gameToJoin, originalGameData.whiteUsername(), usernameToSet, originalGameData.gameName(), originalGameData.game());
+            } else {
+                throw new ServiceException("Error: already taken");
+            }
+        }
+        dataAccess.removeGame(gameToJoin);
+        dataAccess.addGameData(updatedGame);
+
     }
 }
