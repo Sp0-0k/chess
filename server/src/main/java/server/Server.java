@@ -2,8 +2,10 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.MemoryDataAccess;
+import datamodel.GameData;
 import io.javalin.*;
 import io.javalin.http.Context;
+import org.jetbrains.annotations.NotNull;
 import service.ServiceException;
 import service.Service;
 
@@ -29,6 +31,7 @@ public class Server {
         server.post("session", this::login);
         server.delete("session", this::logout);
         server.get("game", this::listGames);
+        server.post("game", this::createGame);
 
         //TODO: Register your endpoints and exception handlers here.
 
@@ -90,14 +93,42 @@ public class Server {
         }
     }
 
+    //Delete Handler
     private void delete(Context ctx) {
         userService.clear();
     }
 
+    //ListGame Handler
     private void listGames(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            GameData[] gamesToReturn = userService.listGames(authToken);
+            var res = Map.of("games", gamesToReturn);
+            ctx.result(serializer.toJson(res));
+        } catch (ServiceException ex) {
+            sendError(ex.getMessage(), 401, ctx);
 
+        }
     }
 
+    //CreateGame Handler
+    private void createGame(Context ctx) {
+        try {
+            String authToken = ctx.header("authorization");
+            String reqJson = ctx.body();
+            var req = serializer.fromJson(reqJson, Map.class);
+            if (!req.containsKey("gameName")) {
+                sendError("Error: bad request", 400, ctx);
+                return;
+            }
+            var gameID = userService.createGame(req.get("gameName").toString(), authToken);
+            var res = Map.of("gameID", gameID);
+            ctx.status(200).result(serializer.toJson(res));
+        } catch (ServiceException ex) {
+            int errorCode = (Objects.equals(ex.getMessage(), "Error: bad request")) ? 400 : 401;
+            sendError(ex.getMessage(), errorCode, ctx);
+        }
+    }
 
     public int run(int desiredPort) {
         server.start(desiredPort);
@@ -113,4 +144,6 @@ public class Server {
         var res = Map.of("message", message);
         ctx.status(errorCode).result(serializer.toJson(res));
     }
+
+
 }

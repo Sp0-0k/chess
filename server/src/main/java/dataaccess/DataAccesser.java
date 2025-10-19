@@ -15,4 +15,10 @@ public interface DataAccesser {
     void removeAuthData(AuthData authData);
 
     AuthData getAuthData(String username);
+
+    GameData[] getGameData();
+
+    void addGameData(GameData newGameData);
+
+    GameData getGame(int gameID);
 }

@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.DataAccesser;
 import datamodel.*;
 
@@ -59,5 +60,34 @@ public class Service {
         }
     }
 
+    public GameData[] listGames(String authToken) throws ServiceException {
+        if (dataAccess.getAuthData(authToken) != null) {
+            return dataAccess.getGameData();
+        } else {
+            throw new ServiceException("Error: unauthorized");
+        }
+    }
 
+
+    public int createGame(String gameName, String authToken) throws ServiceException {
+        if (dataAccess.getAuthData(authToken) != null) {
+            var newGameData = generateGameData(gameName);
+            if (dataAccess.getGame(newGameData.gameID()) == null) {
+                dataAccess.addGameData(newGameData);
+                return newGameData.gameID();
+            } else {
+                throw new ServiceException("Error: bad request");
+            }
+        } else {
+            throw new ServiceException("Error: unauthorized");
+        }
+    }
+
+    private GameData generateGameData(String gameName) {
+        int gameID = gameName.hashCode();
+        if (gameID < 0) {
+            gameID *= -1;
+        }
+        return new GameData(gameID, "", "", gameName, new ChessGame());
+    }
 }

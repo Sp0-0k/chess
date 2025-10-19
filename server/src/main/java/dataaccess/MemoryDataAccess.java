@@ -2,11 +2,13 @@ package dataaccess;
 
 import datamodel.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MemoryDataAccess implements DataAccesser {
     private final HashMap<String, UserData> users = new HashMap<>();
     private final HashMap<String, AuthData> authTokens = new HashMap<>();
+    private final HashMap<Integer, GameData> gameList = new HashMap<>();
     //Might not be correct implementation
 
     @Override
@@ -38,5 +40,23 @@ public class MemoryDataAccess implements DataAccesser {
     @Override
     public AuthData getAuthData(String authToken) {
         return authTokens.get(authToken);
+    }
+
+    @Override
+    public GameData[] getGameData() {
+        return gameList.values().toArray(new GameData[0]);
+    }
+
+    @Override
+    public void addGameData(GameData newGameData) {
+        gameList.put(newGameData.gameID(), newGameData);
+    }
+
+    @Override
+    public GameData getGame(int gameID) {
+        if (gameList.containsKey(gameID)) {
+            return gameList.get(gameID);
+        }
+        return null;
     }
 }
