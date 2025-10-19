@@ -33,7 +33,7 @@ public class Service {
     }
 
 
-    public void createUser(UserData data) {
+    private void createUser(UserData data) {
         dataAccess.createUser(data);
     }
 
@@ -91,30 +91,29 @@ public class Service {
     }
 
     public void joinGame(int gameID, String playerColor, String authToken) throws ServiceException {
-        int gameToJoin = gameID;
-        if (dataAccess.getGame(gameToJoin) == null) {
+        if (dataAccess.getGame(gameID) == null) {
             throw new ServiceException("Error: bad request");
         }
         if (dataAccess.getAuthData(authToken) == null) {
             throw new ServiceException("Error: unauthorized");
         }
         var usernameToSet = dataAccess.getAuthData(authToken).username();
-        var originalGameData = dataAccess.getGame(gameToJoin);
+        var originalGameData = dataAccess.getGame(gameID);
         GameData updatedGame;
         if (Objects.equals(playerColor, "WHITE")) {
             if (originalGameData.whiteUsername() == null) {
-                updatedGame = new GameData(gameToJoin, usernameToSet, originalGameData.blackUsername(), originalGameData.gameName(), originalGameData.game());
+                updatedGame = new GameData(gameID, usernameToSet, originalGameData.blackUsername(), originalGameData.gameName(), originalGameData.game());
             } else {
                 throw new ServiceException("Error: already taken");
             }
         } else {
             if (originalGameData.blackUsername() == null) {
-                updatedGame = new GameData(gameToJoin, originalGameData.whiteUsername(), usernameToSet, originalGameData.gameName(), originalGameData.game());
+                updatedGame = new GameData(gameID, originalGameData.whiteUsername(), usernameToSet, originalGameData.gameName(), originalGameData.game());
             } else {
                 throw new ServiceException("Error: already taken");
             }
         }
-        dataAccess.removeGame(gameToJoin);
+        dataAccess.removeGame(gameID);
         dataAccess.addGameData(updatedGame);
 
     }
