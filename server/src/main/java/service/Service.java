@@ -103,17 +103,17 @@ public class Service {
             throw new ServiceException("Error: unauthorized");
         }
         var usernameToSet = dataAccess.getAuthData(authToken).username();
-        var originalGameData = dataAccess.getGame(gameID);
+        var baseGameData = dataAccess.getGame(gameID);
         GameData updatedGame;
         if (Objects.equals(playerColor, "WHITE")) {
-            if (originalGameData.whiteUsername() == null) {
-                updatedGame = new GameData(gameID, usernameToSet, originalGameData.blackUsername(), originalGameData.gameName(), originalGameData.game());
+            if (baseGameData.whiteUsername() == null) {
+                updatedGame = new GameData(gameID, usernameToSet, baseGameData.blackUsername(), baseGameData.gameName(), baseGameData.game());
             } else {
                 throw new ServiceException("Error: already taken");
             }
         } else {
-            if (originalGameData.blackUsername() == null) {
-                updatedGame = new GameData(gameID, originalGameData.whiteUsername(), usernameToSet, originalGameData.gameName(), originalGameData.game());
+            if (baseGameData.blackUsername() == null) {
+                updatedGame = new GameData(gameID, baseGameData.whiteUsername(), usernameToSet, baseGameData.gameName(), baseGameData.game());
             } else {
                 throw new ServiceException("Error: already taken");
             }

@@ -13,8 +13,6 @@ import java.util.Objects;
 
 public class Server {
 
-    //TODO: Create Service, write two unit tests for every method, one passing on fail
-
     private final Javalin server;
     private final Service userService;
     private final Gson serializer;
@@ -135,7 +133,12 @@ public class Server {
             String authToken = ctx.header("authorization");
             String reqJson = ctx.body();
             var req = serializer.fromJson(reqJson, Map.class);
-            if (!req.containsKey("gameID") || !req.containsKey("playerColor") || (!(Objects.equals(req.get("playerColor").toString(), "WHITE")) && !(Objects.equals(req.get("playerColor").toString(), "BLACK")))) {
+            var playerColor = req.get("playerColor").toString();
+            if (!req.containsKey("gameID") || !req.containsKey("playerColor")) {
+                sendError("Error: bad request", 400, ctx);
+                return;
+            }
+            if (!(Objects.equals(playerColor, "WHITE")) && !(Objects.equals(playerColor, "BLACK"))) {
                 sendError("Error: bad request", 400, ctx);
                 return;
             }
