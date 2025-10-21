@@ -69,10 +69,9 @@ public class ServiceTests {
     }
 
     @Test
-    public void createGameAlreadyExists() throws Exception {
+    public void createGameNoName() {
         db.addAuthData(new AuthData("abc", "testUser"));
-        testService.createGame("testGame", "abc");
-        Assertions.assertThrows(ServiceException.class, () -> testService.createGame("testGame", "abc"));
+        Assertions.assertThrows(ServiceException.class, () -> testService.createGame(null, "abc"));
     }
 
     @Test

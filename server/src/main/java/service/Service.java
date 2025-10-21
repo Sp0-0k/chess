@@ -4,6 +4,8 @@ import chess.ChessGame;
 import dataaccess.DataAccesser;
 import datamodel.*;
 
+import java.util.UUID;
+
 import java.util.Objects;
 import java.util.Random;
 
@@ -20,7 +22,7 @@ public class Service {
         if (dataAccess.getUser(username) == null) {
             var userToAdd = new UserData(username, password, email);
             createUser(userToAdd);
-            var tempAuthData = new AuthData(generateAuthToken(username), username);
+            var tempAuthData = new AuthData(generateAuthToken(), username);
             dataAccess.addAuthData(tempAuthData);
             return tempAuthData;
         } else {
@@ -28,8 +30,8 @@ public class Service {
         }
     }
 
-    private String generateAuthToken(String username) {
-        return username.concat("AuthToken" + Math.abs(random.nextInt(100000)));
+    private String generateAuthToken() {
+        return UUID.randomUUID().toString();
     }
 
 
@@ -43,7 +45,7 @@ public class Service {
         } else if (!Objects.equals(dataAccess.getUser(username).password(), password)) {
             throw new ServiceException("Error: unauthorized");
         } else {
-            var newAuthData = new AuthData(generateAuthToken(username), username);
+            var newAuthData = new AuthData(generateAuthToken(), username);
             dataAccess.addAuthData(newAuthData);
             return newAuthData;
         }
@@ -85,8 +87,11 @@ public class Service {
         }
     }
 
-    private GameData generateGameData(String gameName) {
-        int gameID = Math.abs(gameName.hashCode() % 9999999);
+    private GameData generateGameData(String gameName) throws ServiceException {
+        if (gameName == null) {
+            throw new ServiceException("Error: bad request");
+        }
+        int gameID = Math.abs(random.nextInt());
         return new GameData(gameID, null, null, gameName, new ChessGame());
     }
 
