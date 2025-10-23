@@ -72,59 +72,34 @@ public class ChessBoard {
     public void resetBoard() {
         for (int i = 0; i < 8; ++i) {
             for (int j = 0; j < 8; ++j) {
-                if (i == 0 || i == 1) {
-                    var color = ChessGame.TeamColor.WHITE;
-                    if (i == 0) {
-                        switch (j) {
-                            case 0, 7:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
-                                break;
-                            case 1, 6:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
-                                break;
-                            case 2, 5:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
-                                break;
-                            case 3:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.QUEEN);
-                                break;
-                            case 4:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KING);
-                                break;
-                        }
-                    } else {
-                        board[i][j] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
+                var color = (i == 0 || i == 1) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+                if (i == 0 || i == 7) {
+                    switch (j) {
+                        case 0, 7:
+                            board[i][j] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
+                            break;
+                        case 1, 6:
+                            board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
+                            break;
+                        case 2, 5:
+                            board[i][j] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
+                            break;
+                        case 3:
+                            board[i][j] = new ChessPiece(color, ChessPiece.PieceType.QUEEN);
+                            break;
+                        case 4:
+                            board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KING);
+                            break;
                     }
-
+                } else if (i == 1 || i == 6) {
+                    board[i][j] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
                 }
-                if (i == 6 || i == 7) {
-                    var color = ChessGame.TeamColor.BLACK;
-                    if (i == 7) {
-                        switch (j) {
-                            case 0, 7:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
-                                break;
-                            case 1, 6:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
-                                break;
-                            case 2, 5:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
-                                break;
-                            case 3:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.QUEEN);
-                                break;
-                            case 4:
-                                board[i][j] = new ChessPiece(color, ChessPiece.PieceType.KING);
-                                break;
-                        }
-                    } else {
-                        board[i][j] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
-                    }
 
-                }
             }
+
         }
     }
+
 
     @Override
     public boolean equals(Object o) {
@@ -139,64 +114,7 @@ public class ChessBoard {
     public int hashCode() {
         return Arrays.deepHashCode(board);
     }
-
-    public void outputBoard() {
-        for (int i = 7; i >= 0; --i) {
-            System.out.print("|");
-            for (int j = 0; j < 8; ++j) {
-                var currPiece = getPiece(new ChessPosition(i + 1, j + 1));
-                if (currPiece != null) {
-                    if (currPiece.pieceColor == ChessGame.TeamColor.WHITE) {
-                        switch (currPiece.type) {
-                            case ChessPiece.PieceType.BISHOP:
-                                System.out.print("B");
-                                break;
-                            case ChessPiece.PieceType.ROOK:
-                                System.out.print("R");
-                                break;
-                            case ChessPiece.PieceType.KING:
-                                System.out.print("K");
-                                break;
-                            case ChessPiece.PieceType.PAWN:
-                                System.out.print("P");
-                                break;
-                            case ChessPiece.PieceType.KNIGHT:
-                                System.out.print("N");
-                                break;
-                            case ChessPiece.PieceType.QUEEN:
-                                System.out.print("Q");
-                                break;
-                        }
-                    } else if (currPiece.pieceColor == ChessGame.TeamColor.BLACK) {
-                        switch (currPiece.type) {
-                            case ChessPiece.PieceType.BISHOP:
-                                System.out.print("b");
-                                break;
-                            case ChessPiece.PieceType.ROOK:
-                                System.out.print("r");
-                                break;
-                            case ChessPiece.PieceType.KING:
-                                System.out.print("k");
-                                break;
-                            case ChessPiece.PieceType.PAWN:
-                                System.out.print("p");
-                                break;
-                            case ChessPiece.PieceType.KNIGHT:
-                                System.out.print("n");
-                                break;
-                            case ChessPiece.PieceType.QUEEN:
-                                System.out.print("q");
-                                break;
-                        }
-                    }
-                } else {
-                    System.out.print(" ");
-                }
-                System.out.print("|");
-            }
-            System.out.print("\n");
-        }
-    }
+    
 
     public ChessPosition findPiece(ChessPiece pieceToFind) {
         for (int i = 0; i < 8; ++i) {

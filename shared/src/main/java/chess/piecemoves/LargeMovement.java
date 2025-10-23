@@ -90,63 +90,55 @@ public abstract class LargeMovement extends PieceMovesCalc {
         return moves;
     }
 
+    private boolean verticalMoveFailure(List<ChessMove> moves, int rowNum) {
+        var nextLocation = new ChessPosition(rowNum, curPosition.getColumn());
+        var isValid = new CheckPosition(curPiece, nextLocation, board);
+        if (!isValid.isOccupied() || isValid.isCapturable()) {
+            moves.add(new ChessMove(curPosition, nextLocation, null));
+            if (isValid.isCapturable()) {
+                return true;
+            }
+        }
+        return isValid.isOccupied() && !isValid.isCapturable();
+    }
+
+    private boolean horizontalMoveFailure(List<ChessMove> moves, int colNum) {
+        var nextLocation = new ChessPosition(curPosition.getRow(), colNum);
+        var isValid = new CheckPosition(curPiece, nextLocation, board);
+        if (!isValid.isOccupied() || isValid.isCapturable()) {
+            moves.add(new ChessMove(curPosition, nextLocation, null));
+            if (isValid.isCapturable()) {
+                return true;
+            }
+        }
+        return isValid.isOccupied() && !isValid.isCapturable();
+    }
+
 
     public List<ChessMove> searchHorizontals() {
         List<ChessMove> moves = new ArrayList<>();
 
         //Upwards
         for (int i = curPosition.getRow() + 1; i < 9; ++i) {
-            var nextLocation = new ChessPosition(i, curPosition.getColumn());
-            var isValid = new CheckPosition(curPiece, nextLocation, board);
-            if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(curPosition, nextLocation, null));
-                if (isValid.isCapturable()) {
-                    break;
-                }
-            }
-            if (isValid.isOccupied() && !isValid.isCapturable()) {
+            if (verticalMoveFailure(moves, i)) {
                 break;
             }
         }
         //Downwards
         for (int i = curPosition.getRow() - 1; i > 0; --i) {
-            var nextLocation = new ChessPosition(i, curPosition.getColumn());
-            var isValid = new CheckPosition(curPiece, nextLocation, board);
-            if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(curPosition, nextLocation, null));
-                if (isValid.isCapturable()) {
-                    break;
-                }
-            }
-            if (isValid.isOccupied() && !isValid.isCapturable()) {
+            if (verticalMoveFailure(moves, i)) {
                 break;
             }
         }
         //Right
         for (int i = curPosition.getColumn() + 1; i < 9; ++i) {
-            var nextLocation = new ChessPosition(curPosition.getRow(), i);
-            var isValid = new CheckPosition(curPiece, nextLocation, board);
-            if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(curPosition, nextLocation, null));
-                if (isValid.isCapturable()) {
-                    break;
-                }
-            }
-            if (isValid.isOccupied() && !isValid.isCapturable()) {
+            if (horizontalMoveFailure(moves, i)) {
                 break;
             }
         }
         //Left
         for (int i = curPosition.getColumn() - 1; i > 0; --i) {
-            var nextLocation = new ChessPosition(curPosition.getRow(), i);
-            var isValid = new CheckPosition(curPiece, nextLocation, board);
-            if (!isValid.isOccupied() || isValid.isCapturable()) {
-                moves.add(new ChessMove(curPosition, nextLocation, null));
-                if (isValid.isCapturable()) {
-                    break;
-                }
-            }
-            if (isValid.isOccupied() && !isValid.isCapturable()) {
+            if (horizontalMoveFailure(moves, i)) {
                 break;
             }
         }
