@@ -40,14 +40,14 @@ public class ChessBoard {
     }
 
     public void movePiece(ChessMove move) {
-        ChessPosition start = move.getStartPosition();
-        ChessPosition end = move.getEndPosition();
+        ChessPosition start = move.getStartPos();
+        ChessPosition end = move.getEndPos();
         if (getPiece(start) == null) {
             return;
         }
         ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
-        if (move.getPromotionPiece() != null) {
-            piece.setPieceType(move.getPromotionPiece());
+        if (move.getPromoPiece() != null) {
+            piece.setPieceType(move.getPromoPiece());
         }
         board[start.getRow() - 1][start.getColumn() - 1] = null;
         board[end.getRow() - 1][end.getColumn() - 1] = piece;
@@ -114,7 +114,7 @@ public class ChessBoard {
     public int hashCode() {
         return Arrays.deepHashCode(board);
     }
-    
+
 
     public ChessPosition findPiece(ChessPiece pieceToFind) {
         for (int i = 0; i < 8; ++i) {
