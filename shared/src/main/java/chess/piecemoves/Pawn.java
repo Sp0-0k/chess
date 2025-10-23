@@ -26,9 +26,11 @@ public class Pawn {
 
         var oneAhead = new ChessPosition(myRow + colorDif, myColumn);
         var forwardValidSpot = new CheckPosition(myPiece, oneAhead, board);
+        var white = ChessGame.TeamColor.WHITE;
+        var black = ChessGame.TeamColor.BLACK;
         if (!forwardValidSpot.isOccupied()) {
             addMove(myIndex, oneAhead);
-            if ((myPiece.getTeamColor() == ChessGame.TeamColor.WHITE) && (myRow == 2) || (myPiece.getTeamColor() == ChessGame.TeamColor.BLACK) && (myRow == 7)) {
+            if ((myPiece.getTeamColor() == white) && (myRow == 2) || (myPiece.getTeamColor() == black) && (myRow == 7)) {
                 var twoAhead = new ChessPosition(myRow + (colorDif * 2), myColumn);
                 var nextValidSpot = new CheckPosition(myPiece, twoAhead, board);
                 if (!nextValidSpot.isOccupied()) {
