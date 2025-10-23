@@ -40,14 +40,14 @@ public class ChessBoard {
     }
 
     public void movePiece(ChessMove move) {
-        ChessPosition start = move.getStartPos();
-        ChessPosition end = move.getEndPos();
+        ChessPosition start = move.getStartPosition();
+        ChessPosition end = move.getEndPosition();
         if (getPiece(start) == null) {
             return;
         }
         ChessPiece piece = board[start.getRow() - 1][start.getColumn() - 1];
-        if (move.getPromoPiece() != null) {
-            piece.setPieceType(move.getPromoPiece());
+        if (move.getPromotionPiece() != null) {
+            piece.setPieceType(move.getPromotionPiece());
         }
         board[start.getRow() - 1][start.getColumn() - 1] = null;
         board[end.getRow() - 1][end.getColumn() - 1] = piece;

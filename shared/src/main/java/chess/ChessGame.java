@@ -69,7 +69,7 @@ public class ChessGame {
     private boolean isPieceDanger(ChessPosition locationToCheck, TeamColor colorAttacking, ChessBoard board) {
         var attackerMoves = getTeamMoves(colorAttacking, board);
         for (ChessMove potentialMove : attackerMoves) {
-            if (potentialMove.getEndPos().equals(locationToCheck)) {
+            if (potentialMove.getEndPosition().equals(locationToCheck)) {
                 return true;
             }
         }
@@ -100,7 +100,7 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPosition startingPosition = move.getStartPos();
+        ChessPosition startingPosition = move.getStartPosition();
         if (currBoard.getPiece(startingPosition) == null) {
             throw new InvalidMoveException();
         }

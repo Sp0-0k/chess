@@ -1,11 +1,9 @@
-package passoff.service;
+package service;
 
 import chess.ChessGame;
 import dataaccess.MemoryDataAccess;
 import datamodel.*;
 import org.junit.jupiter.api.*;
-import service.Service;
-import service.ServiceException;
 
 public class ServiceTests {
     private static Service testService;
