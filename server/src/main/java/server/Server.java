@@ -133,11 +133,11 @@ public class Server {
             String authToken = ctx.header("authorization");
             String reqJson = ctx.body();
             var req = serializer.fromJson(reqJson, Map.class);
-            var playerColor = req.get("playerColor").toString();
             if (!req.containsKey("gameID") || !req.containsKey("playerColor")) {
                 sendError("Error: bad request", 400, ctx);
                 return;
             }
+            var playerColor = req.get("playerColor").toString();
             if (!(Objects.equals(playerColor, "WHITE")) && !(Objects.equals(playerColor, "BLACK"))) {
                 sendError("Error: bad request", 400, ctx);
                 return;

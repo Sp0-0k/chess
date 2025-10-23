@@ -112,5 +112,17 @@ public class ServiceTests {
         Assertions.assertEquals("a", db.getGame(1).whiteUsername());
     }
 
+    @Test
+    public void clearTest() {
+        var gameToAdd1 = new GameData(1, "a", "b", "game1", new ChessGame());
+        db.addGameData(gameToAdd1);
+        var gameToAdd2 = new GameData(2, "d", "e", "game2", new ChessGame());
+        db.addGameData(gameToAdd2);
+        var gameToAdd3 = new GameData(3, "f", "g", "game3", new ChessGame());
+        db.addGameData(gameToAdd3);
+        testService.clear();
+        Assertions.assertEquals(0, db.getGameData().length);
+    }
+
 
 }
