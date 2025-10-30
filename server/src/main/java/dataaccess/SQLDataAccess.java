@@ -110,7 +110,7 @@ public class SQLDataAccess implements DataAccesser {
     @Override
     public void addAuthData(AuthData authData) {
         try (var conn = DatabaseManager.getConnection()) {
-            var addAuthData = conn.prepareStatement("INSERT INTO authData (authToken, username) VALUES (?, ?, ?)");
+            var addAuthData = conn.prepareStatement("INSERT INTO authData (authToken, username) VALUES (?, ?)");
             addAuthData.setString(1, authData.authToken());
             addAuthData.setString(2, authData.username());
             addAuthData.executeUpdate();
@@ -121,13 +121,20 @@ public class SQLDataAccess implements DataAccesser {
 
     @Override
     public void removeAuthData(AuthData authData) {
+        try (var conn = DatabaseManager.getConnection()) {
+            var removeAuth = conn.prepareStatement("DELETE FROM authData WHERE authToken = ?");
+            removeAuth.setString(1, authData.authToken());
+            removeAuth.executeUpdate();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
 
     }
 
     @Override
     public AuthData getAuthData(String username) {
         try (var conn = DatabaseManager.getConnection()) {
-            var findAuth = conn.prepareStatement("SELECT * FROM authData WHERE username = ?");
+            var findAuth = conn.prepareStatement("SELECT * FROM authData WHERE authToken = ?");
             findAuth.setString(1, username);
             try (var response = findAuth.executeQuery()) {
                 if (response.next()) {

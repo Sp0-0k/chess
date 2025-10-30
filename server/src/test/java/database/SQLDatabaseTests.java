@@ -2,6 +2,7 @@ package database;
 
 import dataaccess.MemoryDataAccess;
 import dataaccess.SQLDataAccess;
+import datamodel.AuthData;
 import datamodel.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -12,12 +13,14 @@ import org.junit.jupiter.api.Test;
 public class SQLDatabaseTests {
     private static SQLDataAccess db;
     private static UserData newUser;
+    private static AuthData newAuth;
 
     @BeforeEach
     public void setup() throws Exception {
         db = new SQLDataAccess();
         db.clear();
         newUser = new UserData("newUser", "newPass", "newEmail");
+        newAuth = new AuthData("ImAToken", "newUser");
     }
 
     @Test
@@ -42,4 +45,8 @@ public class SQLDatabaseTests {
         Assertions.assertNull(db.getUser("newUser"));
     }
 
+    @Test
+    void addAuthData() {
+        db.addAuthData(newAuth);
+    }
 }
