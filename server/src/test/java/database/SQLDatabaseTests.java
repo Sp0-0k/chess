@@ -22,12 +22,12 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    public void addUser() {
+    public void addUser() throws Exception {
         db.createUser(newUser);
     }
 
     @Test
-    public void findUser() {
+    public void findUser() throws Exception {
         db.createUser(newUser);
         var userdata = db.getUser("newUser");
         Assertions.assertEquals(newUser, userdata);
@@ -35,7 +35,7 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    public void clear() {
+    public void clear() throws Exception {
         db.createUser(newUser);
         db.createUser(new UserData("testCase", "testPass", "testEmail"));
         db.clear();
@@ -44,12 +44,12 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    void addAuthData() {
+    void addAuthData() throws Exception {
         db.addAuthData(newAuth);
     }
 
     @Test
-    void findAuthData() {
+    void findAuthData() throws Exception {
         db.addAuthData(newAuth);
         var returnedAuth = db.getAuthData(newAuth.authToken());
         Assertions.assertNotNull(returnedAuth);
@@ -57,7 +57,7 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    void removeAuthData() {
+    void removeAuthData() throws Exception {
         var testAuth = new AuthData("testToken", "testUser");
         db.addAuthData(newAuth);
         db.addAuthData(testAuth);

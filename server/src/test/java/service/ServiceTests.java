@@ -120,7 +120,7 @@ public class ServiceTests {
         db.addGameData(gameToAdd2);
         var gameToAdd3 = new GameData(3, "f", "g", "game3", new ChessGame());
         db.addGameData(gameToAdd3);
-        testService.clear();
+        Assertions.assertDoesNotThrow(() -> testService.clear());
         Assertions.assertEquals(0, db.getGameData().length);
     }
 

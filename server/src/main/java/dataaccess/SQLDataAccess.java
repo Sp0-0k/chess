@@ -11,12 +11,12 @@ public class SQLDataAccess implements DataAccesser {
         setupTables();
     }
 
-    private void resetDatabase() {
+    private void resetDatabase() throws DataAccessException {
         try {
             DatabaseManager.createDatabase();
             setupTables();
         } catch (Exception exception) {
-            exception.printStackTrace();
+            throw new DataAccessException("There was an issue with the database");
         }
     }
 
@@ -53,16 +53,19 @@ public class SQLDataAccess implements DataAccesser {
             for (var table : tables) {
                 try (var createTable = conn.prepareStatement(table)) {
                     createTable.executeUpdate();
+                } catch (Exception ex) {
+                    throw new DataAccessException("Failed to setup tables");
                 }
             }
         } catch (Exception ex) {
-            throw new DataAccessException("There was an issue with the database");
+            throw new DataAccessException("Failed to setup tables");
+
         }
     }
 
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var findUser = conn.prepareStatement("SELECT * FROM userData WHERE username = ?");
             findUser.setString(1, username);
@@ -76,13 +79,12 @@ public class SQLDataAccess implements DataAccesser {
                 return null;
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with finding a user in the database");
         }
-        return null;
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var addUser = conn.prepareStatement("INSERT INTO userData (username, password, email) VALUES (?, ?, ?)");
             addUser.setString(1, user.username());
@@ -90,48 +92,48 @@ public class SQLDataAccess implements DataAccesser {
             addUser.setString(3, user.email());
             addUser.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with creating a user in the database");
         }
 
     }
 
     @Override
-    public void clear() {
+    public void clear() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var clearDatabase = conn.prepareStatement("DROP DATABASE chess");
             clearDatabase.executeUpdate();
             resetDatabase();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with clearing the database");
         }
     }
 
     @Override
-    public void addAuthData(AuthData authData) {
+    public void addAuthData(AuthData authData) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var addAuthData = conn.prepareStatement("INSERT INTO authData (authToken, username) VALUES (?, ?)");
             addAuthData.setString(1, authData.authToken());
             addAuthData.setString(2, authData.username());
             addAuthData.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with adding authData to the database");
         }
     }
 
     @Override
-    public void removeAuthData(AuthData authData) {
+    public void removeAuthData(AuthData authData) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var removeAuth = conn.prepareStatement("DELETE FROM authData WHERE authToken = ?");
             removeAuth.setString(1, authData.authToken());
             removeAuth.executeUpdate();
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with removing authData from the database");
         }
 
     }
 
     @Override
-    public AuthData getAuthData(String authToken) {
+    public AuthData getAuthData(String authToken) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var findAuth = conn.prepareStatement("SELECT * FROM authData WHERE authToken = ?");
             findAuth.setString(1, authToken);
@@ -144,13 +146,13 @@ public class SQLDataAccess implements DataAccesser {
                 return null;
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
+            throw new DataAccessException("There was an issue with the database");
         }
-        return null;
     }
 
     @Override
     public GameData[] getGameData() {
+
         return new GameData[0];
     }
 

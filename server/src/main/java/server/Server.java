@@ -94,7 +94,11 @@ public class Server {
 
     //Delete Handler
     private void delete(Context ctx) {
-        userService.clear();
+        try {
+            userService.clear();
+        } catch (ServiceException ex) {
+            sendError(ex.getMessage(), 500, ctx);
+        }
     }
 
     //ListGame Handler
