@@ -16,9 +16,9 @@ public interface DataAccesser {
 
     AuthData getAuthData(String username) throws DataAccessException;
 
-    GameData[] getGameData();
+    GameData[] getGameData() throws DataAccessException;
 
-    void addGameData(GameData newGameData);
+    void addGameData(GameData newGameData) throws DataAccessException;
 
     GameData getGame(int gameID);
 

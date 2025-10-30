@@ -1,8 +1,12 @@
 package dataaccess;
 
+import chess.ChessGame;
 import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.UserData;
+
+import java.sql.ResultSet;
+import java.util.ArrayList;
 
 public class SQLDataAccess implements DataAccesser {
 
@@ -151,14 +155,46 @@ public class SQLDataAccess implements DataAccesser {
     }
 
     @Override
-    public GameData[] getGameData() {
+    public GameData[] getGameData() throws DataAccessException {
+        ArrayList<GameData> result = new ArrayList<>();
+        try (var conn = DatabaseManager.getConnection()) {
+            var findGame = conn.prepareStatement("SELECT * FROM gameData");
+            try (var response = findGame.executeQuery()) {
+                while (response.next()) {
+                    result.add(readGameData(response));
+                }
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException("There was an issue with the database");
+        }
+        return result.toArray(new GameData[0]);
+    }
 
-        return new GameData[0];
+    private GameData readGameData(ResultSet rs) throws Exception {
+        var gameID = rs.getInt("gameID");
+        var whiteUser = rs.getString("whiteUsername");
+        var blackUser = rs.getString("blackUsername");
+        var gameName = rs.getString("gameName");
+        ChessGame game = (ChessGame) rs.getObject("game");
+        return new GameData(gameID, whiteUser, blackUser, gameName, game);
+
     }
 
     @Override
-    public void addGameData(GameData newGameData) {
+    public void addGameData(GameData newGameData) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var addGameData = conn.prepareStatement("INSERT INTO gameData (gameID, whiteUsername, blackUsername," +
+                    "gameName, game) VALUES (?, ?, ?, ?, ?)");
+            addGameData.setInt(1, newGameData.gameID());
+            addGameData.setString(2, newGameData.whiteUsername());
+            addGameData.setString(3, newGameData.blackUsername());
+            addGameData.setString(4, newGameData.gameName());
+            addGameData.setObject(5, newGameData.game());
 
+            addGameData.executeUpdate();
+        } catch (Exception ex) {
+            throw new DataAccessException("There was an issue with adding gameData to the database");
+        }
     }
 
     @Override
