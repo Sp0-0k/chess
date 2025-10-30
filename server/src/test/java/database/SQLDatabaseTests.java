@@ -1,11 +1,9 @@
 package database;
 
-import dataaccess.MemoryDataAccess;
 import dataaccess.SQLDataAccess;
 import datamodel.AuthData;
 import datamodel.UserData;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -37,7 +35,7 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    public void clear() throws Exception {
+    public void clear() {
         db.createUser(newUser);
         db.createUser(new UserData("testCase", "testPass", "testEmail"));
         db.clear();

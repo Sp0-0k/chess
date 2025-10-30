@@ -1,6 +1,5 @@
 package dataaccess;
 
-import com.google.gson.Gson;
 import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.UserData;
