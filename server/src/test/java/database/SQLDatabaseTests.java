@@ -1,7 +1,9 @@
 package database;
 
+import chess.ChessGame;
 import dataaccess.SQLDataAccess;
 import datamodel.AuthData;
+import datamodel.GameData;
 import datamodel.UserData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +14,7 @@ public class SQLDatabaseTests {
     private static SQLDataAccess db;
     private static UserData newUser;
     private static AuthData newAuth;
+    private static GameData newGame;
 
     @BeforeEach
     public void setup() throws Exception {
@@ -19,11 +22,13 @@ public class SQLDatabaseTests {
         db.clear();
         newUser = new UserData("newUser", "newPass", "newEmail");
         newAuth = new AuthData("ImAToken", "newUser");
+        newGame = new GameData(1, "user1", "user2", "testGame", new ChessGame());
     }
 
     @Test
     public void addUser() throws Exception {
         db.createUser(newUser);
+        Assertions.assertEquals(newUser, db.getUser(newUser.username()));
     }
 
     @Test
@@ -46,6 +51,7 @@ public class SQLDatabaseTests {
     @Test
     void addAuthData() throws Exception {
         db.addAuthData(newAuth);
+        Assertions.assertEquals(newAuth, db.getAuthData(newAuth.authToken()));
     }
 
     @Test
@@ -54,6 +60,7 @@ public class SQLDatabaseTests {
         var returnedAuth = db.getAuthData(newAuth.authToken());
         Assertions.assertNotNull(returnedAuth);
         Assertions.assertEquals(newAuth, returnedAuth);
+        Assertions.assertNull(db.getAuthData("fakeAuthToken"));
     }
 
     @Test
@@ -67,4 +74,12 @@ public class SQLDatabaseTests {
         db.removeAuthData(testAuth);
         Assertions.assertNull(db.getAuthData(testAuth.authToken()));
     }
+
+    @Test
+    void addGameData() throws Exception {
+        db.addGameData(newGame);
+        Assertions.assertEquals(newGame, db.getGame(1));
+    }
+
+
 }

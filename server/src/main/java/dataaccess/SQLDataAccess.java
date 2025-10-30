@@ -1,6 +1,7 @@
 package dataaccess;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import datamodel.AuthData;
 import datamodel.GameData;
 import datamodel.UserData;
@@ -175,7 +176,7 @@ public class SQLDataAccess implements DataAccesser {
         var whiteUser = rs.getString("whiteUsername");
         var blackUser = rs.getString("blackUsername");
         var gameName = rs.getString("gameName");
-        ChessGame game = (ChessGame) rs.getObject("game");
+        ChessGame game = new Gson().fromJson(rs.getString("game"), ChessGame.class);
         return new GameData(gameID, whiteUser, blackUser, gameName, game);
 
     }
@@ -189,7 +190,8 @@ public class SQLDataAccess implements DataAccesser {
             addGameData.setString(2, newGameData.whiteUsername());
             addGameData.setString(3, newGameData.blackUsername());
             addGameData.setString(4, newGameData.gameName());
-            addGameData.setObject(5, newGameData.game());
+            String json = new Gson().toJson(newGameData.game());
+            addGameData.setString(5, json);
 
             addGameData.executeUpdate();
         } catch (Exception ex) {
@@ -200,7 +202,7 @@ public class SQLDataAccess implements DataAccesser {
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var findGame = conn.prepareStatement("SELECT * FROM authData WHERE gameData = ?");
+            var findGame = conn.prepareStatement("SELECT * FROM gameData WHERE gameID = ?");
             findGame.setInt(1, gameID);
             try (var response = findGame.executeQuery()) {
                 if (response.next()) {
