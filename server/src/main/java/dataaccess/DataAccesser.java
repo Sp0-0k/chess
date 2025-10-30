@@ -20,7 +20,7 @@ public interface DataAccesser {
 
     void addGameData(GameData newGameData) throws DataAccessException;
 
-    GameData getGame(int gameID);
+    GameData getGame(int gameID) throws DataAccessException;
 
-    void removeGame(int gameID);
+    void removeGame(int gameID) throws DataAccessException;
 }

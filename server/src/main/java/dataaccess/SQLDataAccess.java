@@ -198,12 +198,29 @@ public class SQLDataAccess implements DataAccesser {
     }
 
     @Override
-    public GameData getGame(int gameID) {
-        return null;
+    public GameData getGame(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var findGame = conn.prepareStatement("SELECT * FROM authData WHERE gameData = ?");
+            findGame.setInt(1, gameID);
+            try (var response = findGame.executeQuery()) {
+                if (response.next()) {
+                    return readGameData(response);
+                }
+                return null;
+            }
+        } catch (Exception ex) {
+            throw new DataAccessException("There was an issue with the database");
+        }
     }
 
     @Override
-    public void removeGame(int gameID) {
-
+    public void removeGame(int gameID) throws DataAccessException {
+        try (var conn = DatabaseManager.getConnection()) {
+            var removeAuth = conn.prepareStatement("DELETE FROM gameData WHERE gameID = ?");
+            removeAuth.setInt(1, gameID);
+            removeAuth.executeUpdate();
+        } catch (Exception ex) {
+            throw new DataAccessException("There was an issue with removing authData from the database");
+        }
     }
 }
