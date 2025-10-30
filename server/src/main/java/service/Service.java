@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccesser;
 import datamodel.*;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.util.UUID;
 
@@ -20,11 +21,12 @@ public class Service {
 
     public AuthData register(String username, String password, String email) throws ServiceException {
         if (dataAccess.getUser(username) == null) {
-            var userToAdd = new UserData(username, password, email);
+            String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+            var userToAdd = new UserData(username, hashedPassword, email);
             createUser(userToAdd);
-            var tempAuthData = new AuthData(generateAuthToken(), username);
-            dataAccess.addAuthData(tempAuthData);
-            return tempAuthData;
+            var authData = new AuthData(generateAuthToken(), username);
+            dataAccess.addAuthData(authData);
+            return authData;
         } else {
             throw new ServiceException("Error: username already taken");
         }
@@ -40,15 +42,15 @@ public class Service {
     }
 
     public AuthData login(String username, String password) throws ServiceException {
-        if (dataAccess.getUser(username) == null) {
-            throw new ServiceException("Error: unauthorized");
-        } else if (!Objects.equals(dataAccess.getUser(username).password(), password)) {
-            throw new ServiceException("Error: unauthorized");
-        } else {
-            var newAuthData = new AuthData(generateAuthToken(), username);
-            dataAccess.addAuthData(newAuthData);
-            return newAuthData;
+        if (dataAccess.getUser(username) != null) {
+            UserData existingUser = dataAccess.getUser(username);
+            if (BCrypt.checkpw(password, existingUser.password())) {
+                var newAuthData = new AuthData(generateAuthToken(), username);
+                dataAccess.addAuthData(newAuthData);
+                return newAuthData;
+            }
         }
+        throw new ServiceException("Error: unauthorized");
     }
 
     public void clear() {
