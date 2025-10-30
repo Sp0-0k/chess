@@ -81,5 +81,19 @@ public class SQLDatabaseTests {
         Assertions.assertEquals(newGame, db.getGame(1));
     }
 
+    @Test
+    void findGameData() throws Exception {
+        db.addGameData(newGame);
+        GameData returnedData = db.getGame(1);
+        Assertions.assertEquals(newGame, returnedData);
+        Assertions.assertNull(db.getGame(2));
+        Assertions.assertEquals(newGame.game(), returnedData.game());
+    }
+
+    @Test
+    void findAllGames() {
+
+    }
+
 
 }
