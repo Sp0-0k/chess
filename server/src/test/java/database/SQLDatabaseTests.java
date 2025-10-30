@@ -49,4 +49,12 @@ public class SQLDatabaseTests {
     void addAuthData() {
         db.addAuthData(newAuth);
     }
+
+    @Test
+    void findAuthData() {
+        db.addAuthData(newAuth);
+        var returnedAuth = db.getAuthData(newAuth.authToken());
+        Assertions.assertNotNull(returnedAuth);
+        Assertions.assertEquals(newAuth, returnedAuth);
+    }
 }
