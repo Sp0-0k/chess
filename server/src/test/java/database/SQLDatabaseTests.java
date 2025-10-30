@@ -57,4 +57,16 @@ public class SQLDatabaseTests {
         Assertions.assertNotNull(returnedAuth);
         Assertions.assertEquals(newAuth, returnedAuth);
     }
+
+    @Test
+    void removeAuthData() {
+        var testAuth = new AuthData("testToken", "testUser");
+        db.addAuthData(newAuth);
+        db.addAuthData(testAuth);
+        db.removeAuthData(newAuth);
+        Assertions.assertNull(db.getAuthData(newAuth.authToken()));
+        Assertions.assertNotNull(db.getAuthData(testAuth.authToken()));
+        db.removeAuthData(testAuth);
+        Assertions.assertNull(db.getAuthData(testAuth.authToken()));
+    }
 }

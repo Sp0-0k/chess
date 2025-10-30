@@ -132,10 +132,10 @@ public class SQLDataAccess implements DataAccesser {
     }
 
     @Override
-    public AuthData getAuthData(String username) {
+    public AuthData getAuthData(String authToken) {
         try (var conn = DatabaseManager.getConnection()) {
             var findAuth = conn.prepareStatement("SELECT * FROM authData WHERE authToken = ?");
-            findAuth.setString(1, username);
+            findAuth.setString(1, authToken);
             try (var response = findAuth.executeQuery()) {
                 if (response.next()) {
                     String resToken = response.getString("authToken");
