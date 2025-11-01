@@ -14,6 +14,14 @@ public class ChessGame {
     private TeamColor currentTeamColor;
     private ChessBoard currBoard;
 
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "currentTeamColor=" + currentTeamColor +
+                ", currBoard=" + currBoard +
+                '}';
+    }
+
     public ChessGame() {
         currentTeamColor = TeamColor.WHITE;
         currBoard = new ChessBoard();

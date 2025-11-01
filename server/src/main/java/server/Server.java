@@ -2,6 +2,7 @@ package server;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.DataAccesser;
 import dataaccess.MemoryDataAccess;
 import dataaccess.SQLDataAccess;
 import datamodel.GameData;
@@ -20,7 +21,12 @@ public class Server {
     private final Gson serializer;
 
     public Server() {
-        var dataAccess = new MemoryDataAccess();
+        DataAccesser dataAccess;
+        try {
+            dataAccess = new SQLDataAccess();
+        } catch (DataAccessException e) {
+            dataAccess = new MemoryDataAccess();
+        }
         this.serializer = new Gson();
         userService = new Service(dataAccess);
 
@@ -42,8 +48,8 @@ public class Server {
             userService.logout(authToken);
             ctx.result("{ }");
         } catch (ServiceException ex) {
-            sendError(ex.getMessage(), 401, ctx);
-
+            int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 401;
+            sendError(ex.getMessage(), errorCode, ctx);
         }
     }
 
@@ -67,7 +73,8 @@ public class Server {
             if (Objects.equals(ex.getMessage(), "Error: bad request")) {
                 sendError("Error: bad request", 400, ctx);
             } else {
-                sendError(ex.getMessage(), 401, ctx);
+                int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 401;
+                sendError(ex.getMessage(), errorCode, ctx);
             }
             ctx.result(serializer.toJson(res));
         }
@@ -88,7 +95,8 @@ public class Server {
             var authData = userService.register(username, password, email);
             ctx.status(200).result(serializer.toJson(authData));
         } catch (ServiceException ex) {
-            sendError(ex.getMessage(), 403, ctx);
+            int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 403;
+            sendError(ex.getMessage(), errorCode, ctx);
         }
     }
 
@@ -109,8 +117,8 @@ public class Server {
             var res = Map.of("games", gamesToReturn);
             ctx.result(serializer.toJson(res));
         } catch (ServiceException ex) {
-            sendError(ex.getMessage(), 401, ctx);
-
+            int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 401;
+            sendError(ex.getMessage(), errorCode, ctx);
         }
     }
 
@@ -128,8 +136,12 @@ public class Server {
             var res = Map.of("gameID", gameID);
             ctx.status(200).result(serializer.toJson(res));
         } catch (ServiceException ex) {
-            int errorCode = (Objects.equals(ex.getMessage(), "Error: bad request")) ? 400 : 401;
-            sendError(ex.getMessage(), errorCode, ctx);
+            if (Objects.equals(ex.getMessage(), "Error: Database Error")) {
+                sendError(ex.getMessage(), 500, ctx);
+            } else {
+                int errorCode = (Objects.equals(ex.getMessage(), "Error: bad request")) ? 400 : 401;
+                sendError(ex.getMessage(), errorCode, ctx);
+            }
         }
     }
 
@@ -154,8 +166,12 @@ public class Server {
             ctx.status(200).result("{ }");
 
         } catch (ServiceException ex) {
-            int errorCode = (Objects.equals(ex.getMessage(), "Error: already taken")) ? 403 : 401;
-            sendError(ex.getMessage(), errorCode, ctx);
+            if (Objects.equals(ex.getMessage(), "Error: Database Error")) {
+                sendError(ex.getMessage(), 500, ctx);
+            } else {
+                int errorCode = (Objects.equals(ex.getMessage(), "Error: already taken")) ? 403 : 401;
+                sendError(ex.getMessage(), errorCode, ctx);
+            }
         }
 
     }

@@ -91,8 +91,17 @@ public class SQLDatabaseTests {
     }
 
     @Test
-    void findAllGames() {
-
+    void findAllGames() throws Exception {
+        GameData test = new GameData(2, "testW", "testB", "testG", new ChessGame());
+        db.addGameData(newGame);
+        db.addGameData(test);
+        GameData[] returnedData = db.getGameData();
+        GameData[] expectedData = new GameData[2];
+        expectedData[0] = newGame;
+        expectedData[1] = test;
+        for (int i = 0; i < returnedData.length; ++i) {
+            Assertions.assertEquals(expectedData[i], returnedData[i]);
+        }
     }
 
 
