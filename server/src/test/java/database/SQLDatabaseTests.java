@@ -119,12 +119,27 @@ public class SQLDatabaseTests {
     }
 
     @Test
+    void addEmptyGameData() throws Exception {
+        db.addGameData(newGame);
+        var missingName = new GameData(2, "test", "test2", null, new ChessGame());
+        var matchingID = new GameData(1, "test", "test2", "testGame", null);
+        Assertions.assertThrows(DataAccessException.class, () -> db.addGameData(null));
+        Assertions.assertThrows(DataAccessException.class, () -> db.addGameData(missingName));
+        Assertions.assertThrows(DataAccessException.class, () -> db.addGameData(matchingID));
+    }
+
+    @Test
     void findGameData() throws Exception {
         db.addGameData(newGame);
         GameData returnedData = db.getGame(1);
         Assertions.assertEquals(newGame, returnedData);
-        Assertions.assertNull(db.getGame(2));
         Assertions.assertEquals(newGame.game(), returnedData.game());
+    }
+
+    @Test
+    void findMissingGameData() throws Exception {
+        db.addGameData(newGame);
+        Assertions.assertNull(db.getGame(2));
     }
 
     @Test
@@ -139,6 +154,30 @@ public class SQLDatabaseTests {
         for (int i = 0; i < returnedData.length; ++i) {
             Assertions.assertEquals(expectedData[i], returnedData[i]);
         }
+    }
+
+    @Test
+    void findNoGames() throws Exception {
+        GameData[] returnedData = db.getGameData();
+        Assertions.assertNotNull(returnedData);
+        Assertions.assertEquals(0, returnedData.length);
+    }
+
+    @Test
+    void removeGame() throws Exception {
+        db.addGameData(newGame);
+        db.removeGame(newGame.gameID());
+        Assertions.assertNull(db.getGame(newGame.gameID()));
+        Assertions.assertEquals(0, db.getGameData().length);
+    }
+
+    @Test
+    void removeFakeGame() throws Exception {
+        db.addGameData(newGame);
+        db.removeGame(newGame.gameID() + 3);
+        GameData returnedData = db.getGame(1);
+        Assertions.assertEquals(newGame, returnedData);
+        Assertions.assertEquals(newGame.game(), returnedData.game());
     }
 
 
