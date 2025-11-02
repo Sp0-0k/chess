@@ -1,6 +1,7 @@
 package database;
 
 import chess.ChessGame;
+import dataaccess.DataAccessException;
 import dataaccess.SQLDataAccess;
 import datamodel.AuthData;
 import datamodel.GameData;
@@ -32,11 +33,27 @@ public class SQLDatabaseTests {
     }
 
     @Test
+    public void addExistingUser() throws Exception {
+        db.createUser(newUser);
+        Assertions.assertThrows(DataAccessException.class, () -> db.createUser(newUser));
+    }
+
+    @Test
     public void findUser() throws Exception {
         db.createUser(newUser);
         var userdata = db.getUser("newUser");
         Assertions.assertEquals(newUser, userdata);
         Assertions.assertNull(db.getUser("fakeUser"));
+    }
+
+    @Test
+    public void findFakeUser() throws Exception {
+        db.createUser(newUser);
+        db.createUser(new UserData("test", "pass", "email"));
+        var user = db.getUser("*");
+        var user2 = db.getUser("notReal");
+        Assertions.assertNull(user);
+        Assertions.assertNull(user2);
     }
 
     @Test
@@ -55,13 +72,28 @@ public class SQLDatabaseTests {
     }
 
     @Test
+    void addEmptyAuthData() {
+        var nullToken = new AuthData(null, "user1");
+        var nullUsername = new AuthData("token", null);
+        Assertions.assertThrows(DataAccessException.class, () -> db.addAuthData(null));
+        Assertions.assertThrows(DataAccessException.class, () -> db.addAuthData(nullToken));
+        Assertions.assertThrows(DataAccessException.class, () -> db.addAuthData(nullUsername));
+    }
+
+    @Test
     void findAuthData() throws Exception {
         db.addAuthData(newAuth);
         var returnedAuth = db.getAuthData(newAuth.authToken());
         Assertions.assertNotNull(returnedAuth);
         Assertions.assertEquals(newAuth, returnedAuth);
+    }
+
+    @Test
+    void findFakeAuthData() throws Exception {
+        db.addAuthData(newAuth);
         Assertions.assertNull(db.getAuthData("fakeAuthToken"));
     }
+
 
     @Test
     void removeAuthData() throws Exception {
@@ -73,6 +105,11 @@ public class SQLDatabaseTests {
         Assertions.assertNotNull(db.getAuthData(testAuth.authToken()));
         db.removeAuthData(testAuth);
         Assertions.assertNull(db.getAuthData(testAuth.authToken()));
+    }
+
+    @Test
+    void removeEmptyAuthData() {
+        Assertions.assertThrows(DataAccessException.class, () -> db.removeAuthData(null));
     }
 
     @Test

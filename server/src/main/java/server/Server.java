@@ -92,8 +92,8 @@ public class Server {
             String username = req.get("username").toString();
             String password = req.get("password").toString();
             String email = req.get("email").toString();
-            var authData = userService.register(username, password, email);
-            ctx.status(200).result(serializer.toJson(authData));
+            var userData = userService.register(username, password, email);
+            ctx.status(200).result(serializer.toJson(userData));
         } catch (ServiceException ex) {
             int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 403;
             sendError(ex.getMessage(), errorCode, ctx);
