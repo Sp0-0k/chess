@@ -105,8 +105,12 @@ public class SQLDataAccess implements DataAccesser {
     @Override
     public void clear() throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
-            var clearDatabase = conn.prepareStatement("DROP DATABASE chess");
-            clearDatabase.executeUpdate();
+            var clearAuthData = conn.prepareStatement("DROP TABLE authData");
+            clearAuthData.executeUpdate();
+            var clearUserData = conn.prepareStatement("DROP TABLE userData");
+            clearUserData.executeUpdate();
+            var clearGameData = conn.prepareStatement("DROP TABLE gameData");
+            clearGameData.executeUpdate();
             resetDatabase();
         } catch (Exception ex) {
             throw new DataAccessException("There was an issue with clearing the database");
