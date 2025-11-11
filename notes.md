@@ -76,3 +76,28 @@ Compare an interface to a game controller and an inheritance to the game code th
             System.out.print("\n");
         }
     }
+
+## Logging
+### Desirable Logging Characteristics:
+* Persistent -- Exist regardless of server state
+* Immutable -- Can't be changed, even by you
+* Aggregated -- Keep logs all in one place for faster searching
+* Accessible  -- Keep logs searchable
+* Performant -- Fast access of logs
+
+### Logging Benefits
+* Efficient debugging -- of production services
+* Security -- See brute force attacks
+* Auditing -- Statistics for growth and security
+* Performance monitoring -- Timestamps can show response times and show comparisons
+
+### JDK Support
+* Logger Object -- Global Singleton
+1. getLogger(name) -- 
+2. log(level, message) -- level = severity
+* Logger logger = Logger.getLogger("myLogger)
+* var handler = new FileHandler("example.log", true)
+* handler.setFormatter(new SimpleFormatter())
+* logger.addHandler(handler)
+* logger.info("main: " + String.join(", ", args)); 
+* logger.severe("the bombs are dropping");

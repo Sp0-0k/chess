@@ -1,0 +1,102 @@
+package UserClient;
+
+import java.util.Scanner;
+
+import ui.*;
+
+public class Client {
+
+    private boolean loggedIn;
+
+    public void run() {
+        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+        System.out.println("Welcome to Kirk's Chess App. Type Help to get started.");
+        Scanner scanner = new Scanner(System.in);
+        var result = "";
+        while (!result.equalsIgnoreCase("quit")) {
+            String line = scanner.nextLine();
+            try {
+                result = parseLine(line);
+            } catch (Exception ex) {
+                var msg = ex.toString();
+                System.out.println(msg);
+            }
+        }
+
+    }
+
+    private String parseLine(String line) {
+        String[] tokens = line.toLowerCase().split(" ");
+        String cmd = (tokens.length > 0) ? tokens[0] : "help";
+        switch (cmd) {
+            case "login" -> signIn(tokens);
+            case "register" -> registerUser(tokens);
+            case "logout" -> logoutUser();
+            case "create" -> createGame(tokens);
+            case "list" -> listGames();
+            case "join" -> joinGame(tokens);
+            case "observe" -> observeGame(tokens);
+            case "quit" -> loggedIn = false;
+            default -> help();
+        }
+        ;
+        return cmd;
+
+
+    }
+
+    private void help() {
+        String registerInfo = "register <USERNAME> <PASSWORD> <EMAIL> --- create an account \n";
+        String loginInfo = "login <USERNAME> <PASSWORD> --- login to you chess account\n";
+        String quitInfo = "quit --- stop playing chess\n";
+        String helpInfo = "help --- view possible commands\n";
+        String createInfo = "create <NAME> --- create a new game\n";
+        String listInfo = "list --- list all games\n";
+        String joinInfo = "join <ID> [WHITE|BLACK] --- join a created game\n";
+        String observeInfo = "observe <ID> --- watch a game\n";
+        String logoutInfo = "logout --- logout of your account\n";
+
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+        if (!loggedIn) {
+            System.out.print(registerInfo);
+            System.out.print(loginInfo);
+        } else {
+            System.out.print(createInfo);
+            System.out.print(listInfo);
+            System.out.print(joinInfo);
+            System.out.print(observeInfo);
+            System.out.print(logoutInfo);
+
+        }
+        System.out.print(quitInfo);
+        System.out.print(helpInfo);
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE);
+        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+
+    }
+
+    private void observeGame(String[] tokens) {
+    }
+
+    private void joinGame(String[] tokens) {
+    }
+
+    private void listGames() {
+    }
+
+    private void createGame(String[] tokens) {
+    }
+
+    private void logoutUser() {
+    }
+
+    private void registerUser(String[] tokens) {
+    }
+
+    private void signIn(String[] tokens) {
+        loggedIn = true;
+    }
+
+
+}
