@@ -1,12 +1,18 @@
 package UserClient;
 
+import java.lang.module.ResolutionException;
 import java.util.Scanner;
 
+import ResponseException.ResponseException;
+import ServerFacade.ServerFacade;
+import datamodel.AuthData;
 import ui.*;
 
 public class Client {
 
     private boolean loggedIn;
+    private ServerFacade facade;
+    private String authToken;
 
     public void run() {
         System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
@@ -92,6 +98,19 @@ public class Client {
     }
 
     private void registerUser(String[] tokens) {
+        if (tokens.length == 3) {
+            var username = tokens[0];
+            var password = tokens[1];
+            var email = tokens[2];
+            try {
+                AuthData auth = facade.addUser(username, password, email);
+                authToken = auth.authToken();
+            } catch (ResponseException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
+            }
+        } else {
+            System.out.println("Incorrect number of arguments");
+        }
     }
 
     private void signIn(String[] tokens) {

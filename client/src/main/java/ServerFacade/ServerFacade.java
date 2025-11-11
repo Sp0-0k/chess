@@ -1,5 +1,6 @@
 package ServerFacade;
 
+import ResponseException.ResponseException;
 import com.google.gson.Gson;
 import com.google.gson.*;
 import datamodel.*;
@@ -8,6 +9,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Map;
 
 public class ServerFacade {
     private final HttpClient reqClient = HttpClient.newHttpClient();
@@ -17,42 +19,42 @@ public class ServerFacade {
         serverUrl = url;
     }
 
-    public AuthData addUser(String username, String password, String email) throws Exception {
+    public AuthData addUser(String username, String password, String email) throws ResponseException {
         var body = new UserData(username, password, email);
         var request = buildRequest("POST", "/user", body);
         var response = sendRequest(request);
         if (isSuccessful(response.statusCode())) {
             return new Gson().fromJson(response.body(), AuthData.class);
         } else {
-            throw new Exception("Failed From Server");
+            throw new ResponseException(response.statusCode(), "Failed from server:" + response.body() + response.statusCode());
         }
     }
 
-    public AuthData loginUser(String username, String password, String email) throws Exception {
-        var body = new UserData(username, password, email);
+    public AuthData loginUser(String username, String password) throws ResponseException {
+        var body = Map.of("username", username, "password", password);
         var request = buildRequest("POST", "/session", body);
         var response = sendRequest(request);
         if (isSuccessful(response.statusCode())) {
             return new Gson().fromJson(response.body(), AuthData.class);
         } else {
-            throw new Exception("Failed From Server");
+            throw new ResponseException(response.statusCode(), "Filed from server:" + response.body() + response.statusCode());
         }
     }
 
-    public void logoutUser() throws Exception {
+    public void logoutUser() throws ResponseException {
         var request = buildRequest("DELETE", "/session", null);
         var response = sendRequest(request);
         if (!isSuccessful(response.statusCode())) {
-            throw new Exception("Failed From Server");
+            throw new ResponseException(response.statusCode(), "Failed from server:" + response.body() + response.statusCode());
         }
     }
 
 
-    private HttpResponse<String> sendRequest(HttpRequest request) throws Exception {
+    private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException {
         try {
             return reqClient.send(request, HttpResponse.BodyHandlers.ofString());
         } catch (Exception ex) {
-            throw new Exception("Failed");
+            throw new ResponseException(400, "Failed to send request");
         }
     }
 
