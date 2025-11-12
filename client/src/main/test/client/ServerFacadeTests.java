@@ -63,7 +63,8 @@ public class ServerFacadeTests {
     @Test
     public void logoutUserTest() {
         try {
-            facade.logoutUser();
+            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+            facade.logoutUser(returnedData.authToken());
         } catch (ResponseException ex) {
             System.out.println(ex.getMessage());
         }

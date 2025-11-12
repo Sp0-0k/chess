@@ -45,7 +45,6 @@ public class Client {
             case "quit" -> loggedIn = false;
             default -> help();
         }
-        ;
         return cmd;
 
 
@@ -95,6 +94,11 @@ public class Client {
     }
 
     private void logoutUser() {
+        try {
+            facade.logoutUser(authToken);
+        } catch (ResponseException ex) {
+            System.out.println("There was an error: \n" + ex.getMessage());
+        }
     }
 
     private void registerUser(String[] tokens) {
