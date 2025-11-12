@@ -1,6 +1,5 @@
 package UserClient;
 
-import java.lang.module.ResolutionException;
 import java.util.Scanner;
 
 import ResponseException.ResponseException;
@@ -15,6 +14,7 @@ public class Client {
     private String authToken;
 
     public void run() {
+        facade = new ServerFacade("http://localhost:8080");
         System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
         System.out.println("Welcome to Kirk's Chess App. Type Help to get started.");
         Scanner scanner = new Scanner(System.in);
@@ -96,16 +96,18 @@ public class Client {
     private void logoutUser() {
         try {
             facade.logoutUser(authToken);
+            loggedIn = false;
+            authToken = "";
         } catch (ResponseException ex) {
             System.out.println("There was an error: \n" + ex.getMessage());
         }
     }
 
     private void registerUser(String[] tokens) {
-        if (tokens.length == 3) {
-            var username = tokens[0];
-            var password = tokens[1];
-            var email = tokens[2];
+        if (tokens.length == 4) {
+            var username = tokens[1];
+            var password = tokens[2];
+            var email = tokens[3];
             try {
                 AuthData auth = facade.addUser(username, password, email);
                 authToken = auth.authToken();
@@ -118,7 +120,20 @@ public class Client {
     }
 
     private void signIn(String[] tokens) {
-        loggedIn = true;
+        if (tokens.length == 3) {
+            var username = tokens[1];
+            var password = tokens[2];
+            try {
+                AuthData auth = facade.loginUser(username, password);
+                authToken = auth.authToken();
+                loggedIn = true;
+            } catch (ResponseException ex) {
+                if (ex.code() == 401) {
+                    System.out.println("There was an error with your credentials \n");
+                }
+                System.out.println("There was an error with logging in " + ex.getMessage());
+            }
+        }
     }
 
 
