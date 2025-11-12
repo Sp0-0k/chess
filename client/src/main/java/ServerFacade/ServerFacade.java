@@ -49,6 +49,28 @@ public class ServerFacade {
         }
     }
 
+    public int addGame(String authToken, String gameName) throws ResponseException {
+        var body = Map.of("gameName", gameName);
+        var request = buildRequest("POST", "/game", body, authToken);
+        var response = sendRequest(request);
+        if (isSuccessful(response.statusCode())) {
+            var mapJson = new Gson().fromJson(response.body(), Map.class);
+            Number gameID = (Number) mapJson.get("gameID");
+            return gameID.intValue();
+        } else {
+            throw new ResponseException(response.statusCode(), "Failed from server:" + response.body() + response.statusCode());
+        }
+    }
+
+    public GameData[] listGames(String authToken) throws ResponseException {
+        var request = buildRequest("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        if (isSuccessful(response.statusCode())) {
+            return new GameData[]{new Gson().fromJson(response.body(), GameData.class)};
+        } else {
+            throw new ResponseException(response.statusCode(), "Failed from server: " + response.body() + response.statusCode());
+        }
+    }
 
     private HttpResponse<String> sendRequest(HttpRequest request) throws ResponseException {
         try {

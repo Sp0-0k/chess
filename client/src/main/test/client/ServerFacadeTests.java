@@ -70,4 +70,14 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    public void createGameTest() {
+        try {
+            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+            var gameID = facade.addGame(returnedData.authToken(), "testGame");
+        } catch (ResponseException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
 }
