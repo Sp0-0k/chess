@@ -3,16 +3,12 @@ package ServerFacade;
 import ResponseException.ResponseException;
 import com.google.gson.Gson;
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
 import datamodel.*;
 
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.Dictionary;
 import java.util.Map;
 
 public class ServerFacade {
