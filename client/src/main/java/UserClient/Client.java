@@ -61,7 +61,7 @@ public class Client {
         String helpInfo = "help --- view possible commands\n";
         String createInfo = "create <NAME> --- create a new game\n";
         String listInfo = "list --- list all games\n";
-        String joinInfo = "join <ID> [WHITE|BLACK] --- join a created game\n";
+        String joinInfo = "join [WHITE|BLACK] <ID> --- join a created game\n";
         String observeInfo = "observe <ID> --- watch a game\n";
         String logoutInfo = "logout --- logout of your account\n";
 
@@ -111,7 +111,16 @@ public class Client {
             try {
                 if (tokens.length == 3) {
                     tokens[1] = tokens[1].toUpperCase();
-                    int gameID = lastPulledGameList[Integer.parseInt(tokens[2])].gameID();
+                    if (!tokens[1].equals("WHITE") && !tokens[1].equals("BLACK")) {
+                        System.out.println("Sorry, your team color couldn't be read");
+                        return;
+                    }
+                    int idToCheck = Integer.parseInt(tokens[2]);
+                    if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
+                        System.out.println("Sorry that's not a valid game ID");
+                        return;
+                    }
+                    int gameID = lastPulledGameList[idToCheck].gameID();
                     facade.joinGame(authToken, tokens[1], gameID);
                     viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[2])], playerName);
                     viewer.drawBoard();
@@ -131,6 +140,9 @@ public class Client {
                 for (int i = 0; i < lastPulledGameList.length; ++i) {
                     System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + i);
                 }
+                if (lastPulledGameList.length == 0) {
+                    System.out.println("Couldn't find any games");
+                }
             } catch (ResponseException ex) {
                 System.out.println("There was an error: \n" + ex.getMessage());
             }
@@ -142,6 +154,7 @@ public class Client {
             try {
                 if (tokens.length == 2) {
                     facade.addGame(authToken, tokens[1]);
+                    System.out.println("Created the game!");
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }
@@ -158,6 +171,7 @@ public class Client {
                 loggedIn = false;
                 playerName = "";
                 authToken = "";
+                System.out.println("Logged out");
             } catch (ResponseException ex) {
                 System.out.println("There was an error: \n" + ex.getMessage());
             }
