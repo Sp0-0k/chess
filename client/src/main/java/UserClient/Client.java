@@ -14,7 +14,6 @@ public class Client {
     private ServerFacade facade;
     private String authToken;
     private GameData[] lastPulledGameList;
-    private GameData[] currentGame;
     private BoardCreator viewer;
     private String playerName;
 
@@ -87,6 +86,19 @@ public class Client {
     }
 
     private void observeGame(String[] tokens) {
+        if (loggedIn) {
+            try {
+                if (tokens.length == 2) {
+                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1])], playerName);
+                    viewer.drawBoard();
+                } else {
+                    System.out.println("Incorrect number of arguments");
+                }
+            } catch (RuntimeException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
+            }
+        }
+
         var data = new GameData(2, "kal", "bob", "test", new ChessGame());
         viewer = new BoardCreator(data, "bob");
         viewer.drawBoard();
