@@ -4,6 +4,7 @@ import java.util.Scanner;
 
 import ResponseException.ResponseException;
 import ServerFacade.ServerFacade;
+import chess.ChessGame;
 import datamodel.*;
 import ui.*;
 
@@ -86,6 +87,11 @@ public class Client {
     }
 
     private void observeGame(String[] tokens) {
+        var data = new GameData(2, "kal", "bob", "test", new ChessGame());
+        viewer = new BoardCreator(data, "bob");
+        viewer.drawBoard();
+        viewer = new BoardCreator(data, "kal");
+        viewer.drawBoard();
     }
 
     private void joinGame(String[] tokens) {
