@@ -4,7 +4,6 @@ import java.util.Scanner;
 
 import ResponseException.ResponseException;
 import ServerFacade.ServerFacade;
-import chess.ChessGame;
 import datamodel.*;
 import ui.*;
 
@@ -89,21 +88,20 @@ public class Client {
         if (loggedIn) {
             try {
                 if (tokens.length == 2) {
-                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1])], playerName);
+                    int idToCheck = Integer.parseInt(tokens[1]) - 1;
+                    if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
+                        System.out.println("Sorry that's not a valid game ID");
+                        return;
+                    }
+                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], playerName);
                     viewer.drawBoard();
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }
             } catch (RuntimeException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                System.out.println("There was an error: ");
             }
         }
-
-        var data = new GameData(2, "kal", "bob", "test", new ChessGame());
-        viewer = new BoardCreator(data, "bob");
-        viewer.drawBoard();
-        viewer = new BoardCreator(data, "kal");
-        viewer.drawBoard();
     }
 
     private void joinGame(String[] tokens) {
@@ -115,20 +113,27 @@ public class Client {
                         System.out.println("Sorry, your team color couldn't be read");
                         return;
                     }
-                    int idToCheck = Integer.parseInt(tokens[2]);
+                    int idToCheck = Integer.parseInt(tokens[2]) - 1;
                     if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
                         System.out.println("Sorry that's not a valid game ID");
                         return;
                     }
                     int gameID = lastPulledGameList[idToCheck].gameID();
                     facade.joinGame(authToken, tokens[1], gameID);
-                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[2])], playerName);
+                    viewer = new BoardCreator(lastPulledGameList[idToCheck], playerName);
                     viewer.drawBoard();
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }
             } catch (ResponseException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                if (ex.code() == 401) {
+                    System.out.println("It seems like you're login is no longer valid, please log in and try again");
+                    loggedIn = false;
+                } else if (ex.code() == 403) {
+                    System.out.println("The player color you selected is already in use in that game, please try again");
+                } else {
+                    System.out.println("There was an error joining that game, please try again");
+                }
             }
         }
     }
@@ -138,13 +143,18 @@ public class Client {
             try {
                 lastPulledGameList = facade.listGames(authToken);
                 for (int i = 0; i < lastPulledGameList.length; ++i) {
-                    System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + i);
+                    System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + (i + 1));
                 }
                 if (lastPulledGameList.length == 0) {
                     System.out.println("Couldn't find any games");
                 }
             } catch (ResponseException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                if (ex.code() == 401) {
+                    System.out.println("It seems like you're login is no longer valid, please log in and try again");
+                    loggedIn = false;
+                } else {
+                    System.out.println("There was an error getting the game, please try again");
+                }
             }
         }
     }
@@ -159,7 +169,12 @@ public class Client {
                     System.out.println("Incorrect number of arguments");
                 }
             } catch (ResponseException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                if (ex.code() == 401) {
+                    System.out.println("It seems like you're login is no longer valid, please log in and try again");
+                    loggedIn = false;
+                } else {
+                    System.out.println("There was and error creating your game, please try again");
+                }
             }
         }
     }
@@ -173,12 +188,16 @@ public class Client {
                 authToken = "";
                 System.out.println("Logged out");
             } catch (ResponseException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                System.out.println("There was an error logging you out, please try again");
             }
         }
     }
 
     private void registerUser(String[] tokens) {
+        if (loggedIn) {
+            System.out.println("You're already logged in, try a different command");
+            return;
+        }
         if (tokens.length == 4) {
             var username = tokens[1];
             var password = tokens[2];
@@ -190,7 +209,11 @@ public class Client {
                 playerName = username;
                 System.out.println("All logged in!");
             } catch (ResponseException ex) {
-                System.out.println("There was an error: \n" + ex.getMessage());
+                if (ex.code() == 403) {
+                    System.out.println("Sorry, that username is already taken");
+                } else {
+                    System.out.println("There was an error logging you in, please try again");
+                }
             }
         } else {
             System.out.println("Incorrect number of arguments");
@@ -198,6 +221,10 @@ public class Client {
     }
 
     private void signIn(String[] tokens) {
+        if (loggedIn) {
+            System.out.println("You're already signed in, try a different command");
+            return;
+        }
         if (tokens.length == 3) {
             var username = tokens[1];
             var password = tokens[2];
@@ -209,9 +236,10 @@ public class Client {
                 System.out.println("All logged in!");
             } catch (ResponseException ex) {
                 if (ex.code() == 401) {
-                    System.out.println("There was an error with your credentials \n");
+                    System.out.println("There was an error with your credentials");
+                } else {
+                    System.out.println("There was an error with logging in, please try again");
                 }
-                System.out.println("There was an error with logging in " + ex.getMessage());
             }
         }
     }

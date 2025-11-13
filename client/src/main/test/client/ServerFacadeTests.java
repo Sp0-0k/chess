@@ -8,6 +8,8 @@ import server.Server;
 import service.Service;
 import datamodel.*;
 
+import java.util.Map;
+
 
 public class ServerFacadeTests {
 
@@ -39,73 +41,90 @@ public class ServerFacadeTests {
 
 
     @Test
-    public void addUserTest() {
-        try {
-            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
-            Assertions.assertEquals("TestName", returnedData.username());
-        } catch (Exception ex) {
-            System.out.println("Failed To Add User");
+    public void addUserTest() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        Assertions.assertEquals("TestName", returnedData.username());
+    }
+
+    @Test
+    public void addExistingUserTest() throws ResponseException {
+        facade.addUser("TestName", "TestPass", "TestEmail");
+        Assertions.assertThrows(ResponseException.class, () ->
+                facade.addUser("TestName", "TestPass", "TestEmail"));
+    }
+
+    @Test
+    public void loginUserTest() throws ResponseException {
+        facade.addUser("TestName", "TestPass", "TestEmail");
+        AuthData returnedData = facade.loginUser("TestName", "TestPass");
+        Assertions.assertNotNull(returnedData);
+        Assertions.assertEquals("TestName", returnedData.username());
+    }
+
+    @Test
+    public void loginMissingUser() {
+        Assertions.assertThrows(ResponseException.class, () -> facade.loginUser("BadUser", "TestPass"));
+    }
+
+    @Test
+    public void logoutUserTest() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        Assertions.assertDoesNotThrow(() -> facade.logoutUser(returnedData.authToken()));
+    }
+
+    @Test
+    public void logoutUserNoAuth() {
+        Assertions.assertThrows(ResponseException.class, () -> facade.logoutUser("NotARealToken"));
+    }
+
+    @Test
+    public void createGameTest() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        var gameID = facade.addGame(returnedData.authToken(), "testGame");
+        Assertions.assertTrue(gameID > 0);
+    }
+
+    @Test
+    public void createGameWithoutLogin() {
+        Assertions.assertThrows(ResponseException.class, () -> facade.addGame("FakeToken", "testGame"));
+    }
+
+    @Test
+    public void listGameTest() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        var game1ID = facade.addGame(returnedData.authToken(), "testGame");
+        var game2ID = facade.addGame(returnedData.authToken(), "testGame2");
+        var game3ID = facade.addGame(returnedData.authToken(), "testGame3");
+        GameData[] gameList = facade.listGames(returnedData.authToken());
+        var expectedGames = Map.of("testGame", game1ID, "testGame2", game2ID, "testGame3", game3ID);
+        for (GameData data : gameList) {
+            var expectedID = expectedGames.get(data.gameName());
+            Assertions.assertEquals(expectedID, data.gameID());
         }
     }
 
     @Test
-    public void loginUserTest() {
-        try {
-            facade.addUser("TestName", "TestPass", "TestEmail");
-            AuthData returnedData = facade.loginUser("TestName", "TestPass");
-            Assertions.assertNotNull(returnedData);
-            Assertions.assertEquals("TestName", returnedData.username());
-        } catch (ResponseException ex) {
-            System.out.println(ex.getMessage());
-        }
+    public void listGameWithoutLogin() {
+        Assertions.assertThrows(ResponseException.class, () -> facade.listGames("fakeToken"));
     }
 
     @Test
-    public void logoutUserTest() {
-        try {
-            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
-            facade.logoutUser(returnedData.authToken());
-        } catch (ResponseException ex) {
-            System.out.println(ex.getMessage());
-        }
+    public void joinGameTest() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        var game1ID = facade.addGame(returnedData.authToken(), "testGame");
+        facade.joinGame(returnedData.authToken(), "WHITE", game1ID);
+        var gamesList = facade.listGames(returnedData.authToken());
+        Assertions.assertEquals("TestName", gamesList[0].whiteUsername());
     }
 
     @Test
-    public void createGameTest() {
-        try {
-            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
-            var gameID = facade.addGame(returnedData.authToken(), "testGame");
-        } catch (ResponseException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    @Test
-    public void listGameTest() {
-        try {
-            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
-            var game1ID = facade.addGame(returnedData.authToken(), "testGame");
-            var game2ID = facade.addGame(returnedData.authToken(), "testGame2");
-            var game3ID = facade.addGame(returnedData.authToken(), "testGame3");
-            var gameList = facade.listGames(returnedData.authToken());
-            for (GameData data : gameList) {
-                System.out.println(data.gameName());
-            }
-        } catch (ResponseException ex) {
-            System.out.println(ex.getMessage());
-        }
-    }
-
-    @Test
-    public void joinGameTest() {
-        try {
-            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
-            var game1ID = facade.addGame(returnedData.authToken(), "testGame");
-            facade.joinGame(returnedData.authToken(), "WHITE", game1ID);
-
-        } catch (ResponseException ex) {
-            System.out.println(ex.getMessage());
-        }
+    public void joinFullGame() throws ResponseException {
+        AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+        var token = returnedData.authToken();
+        var game1ID = facade.addGame(returnedData.authToken(), "testGame");
+        facade.joinGame(token, "WHITE", game1ID);
+        facade.joinGame(token, "BLACK", game1ID);
+        Assertions.assertThrows(ResponseException.class, () -> facade.joinGame(token, "WHITE", game1ID));
     }
 
 }
