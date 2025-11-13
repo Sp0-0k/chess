@@ -4,7 +4,7 @@ import java.util.Scanner;
 
 import ResponseException.ResponseException;
 import ServerFacade.ServerFacade;
-import datamodel.AuthData;
+import datamodel.*;
 import ui.*;
 
 public class Client {
@@ -12,6 +12,7 @@ public class Client {
     private boolean loggedIn;
     private ServerFacade facade;
     private String authToken;
+    private GameData[] lastPulledGameList;
 
     public void run() {
         facade = new ServerFacade("http://localhost:8080");
@@ -85,9 +86,26 @@ public class Client {
     }
 
     private void joinGame(String[] tokens) {
+        try {
+            if (tokens.length == 3) {
+                tokens[1] = tokens[1].toUpperCase();
+                int gameID = lastPulledGameList[Integer.parseInt(tokens[2])].gameID();
+                facade.joinGame(authToken, tokens[1], gameID);
+            }
+        } catch (ResponseException ex) {
+            System.out.println("There was an error: \n" + ex.getMessage());
+        }
     }
 
     private void listGames() {
+        try {
+            lastPulledGameList = facade.listGames(authToken);
+            for (int i = 0; i < lastPulledGameList.length; ++i) {
+                System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + i);
+            }
+        } catch (ResponseException ex) {
+            System.out.println("There was an error: \n" + ex.getMessage());
+        }
     }
 
     private void createGame(String[] tokens) {

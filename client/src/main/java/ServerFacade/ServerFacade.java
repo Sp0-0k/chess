@@ -3,12 +3,16 @@ package ServerFacade;
 import ResponseException.ResponseException;
 import com.google.gson.Gson;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import datamodel.*;
 
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.Dictionary;
 import java.util.Map;
 
 public class ServerFacade {
@@ -66,8 +70,19 @@ public class ServerFacade {
         var request = buildRequest("GET", "/game", null, authToken);
         var response = sendRequest(request);
         if (isSuccessful(response.statusCode())) {
-            return new GameData[]{new Gson().fromJson(response.body(), GameData.class)};
+            String jsonGames = response.body();
+            var map = new Gson().fromJson(jsonGames, GameList.class);
+            return map.games();
         } else {
+            throw new ResponseException(response.statusCode(), "Failed from server: " + response.body() + response.statusCode());
+        }
+    }
+
+    public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
+        var body = Map.of("gameID", gameID, "playerColor", playerColor);
+        var request = buildRequest("PUT", "/game", body, authToken);
+        var response = sendRequest(request);
+        if (!isSuccessful(response.statusCode())) {
             throw new ResponseException(response.statusCode(), "Failed from server: " + response.body() + response.statusCode());
         }
     }

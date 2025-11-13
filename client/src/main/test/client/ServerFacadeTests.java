@@ -80,4 +80,32 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    public void listGameTest() {
+        try {
+            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+            var game1ID = facade.addGame(returnedData.authToken(), "testGame");
+            var game2ID = facade.addGame(returnedData.authToken(), "testGame2");
+            var game3ID = facade.addGame(returnedData.authToken(), "testGame3");
+            var gameList = facade.listGames(returnedData.authToken());
+            for (GameData data : gameList) {
+                System.out.println(data.gameName());
+            }
+        } catch (ResponseException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    @Test
+    public void joinGameTest() {
+        try {
+            AuthData returnedData = facade.addUser("TestName", "TestPass", "TestEmail");
+            var game1ID = facade.addGame(returnedData.authToken(), "testGame");
+            facade.joinGame(returnedData.authToken(), "WHITE", game1ID);
+
+        } catch (ResponseException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
 }

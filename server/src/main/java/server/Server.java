@@ -8,6 +8,7 @@ import dataaccess.SQLDataAccess;
 import datamodel.GameData;
 import io.javalin.*;
 import io.javalin.http.Context;
+import org.jetbrains.annotations.NotNull;
 import service.ServiceException;
 import service.Service;
 
@@ -114,7 +115,7 @@ public class Server {
         try {
             String authToken = ctx.header("authorization");
             GameData[] gamesToReturn = userService.listGames(authToken);
-            var res = Map.of("games", gamesToReturn);
+            Map<String, GameData[]> res = Map.of("games", gamesToReturn);
             ctx.result(serializer.toJson(res));
         } catch (ServiceException ex) {
             int errorCode = (Objects.equals(ex.getMessage(), "Error: Database Error")) ? 500 : 401;
