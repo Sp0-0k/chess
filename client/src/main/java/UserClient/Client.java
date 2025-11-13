@@ -13,6 +13,9 @@ public class Client {
     private ServerFacade facade;
     private String authToken;
     private GameData[] lastPulledGameList;
+    private GameData[] currentGame;
+    private BoardCreator viewer;
+    private String playerName;
 
     public void run() {
         facade = new ServerFacade("http://localhost:8080");
@@ -86,38 +89,60 @@ public class Client {
     }
 
     private void joinGame(String[] tokens) {
-        try {
-            if (tokens.length == 3) {
-                tokens[1] = tokens[1].toUpperCase();
-                int gameID = lastPulledGameList[Integer.parseInt(tokens[2])].gameID();
-                facade.joinGame(authToken, tokens[1], gameID);
+        if (loggedIn) {
+            try {
+                if (tokens.length == 3) {
+                    tokens[1] = tokens[1].toUpperCase();
+                    int gameID = lastPulledGameList[Integer.parseInt(tokens[2])].gameID();
+                    facade.joinGame(authToken, tokens[1], gameID);
+                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[2])], playerName);
+                    viewer.drawBoard();
+                } else {
+                    System.out.println("Incorrect number of arguments");
+                }
+            } catch (ResponseException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
             }
-        } catch (ResponseException ex) {
-            System.out.println("There was an error: \n" + ex.getMessage());
         }
     }
 
     private void listGames() {
-        try {
-            lastPulledGameList = facade.listGames(authToken);
-            for (int i = 0; i < lastPulledGameList.length; ++i) {
-                System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + i);
+        if (loggedIn) {
+            try {
+                lastPulledGameList = facade.listGames(authToken);
+                for (int i = 0; i < lastPulledGameList.length; ++i) {
+                    System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + i);
+                }
+            } catch (ResponseException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
             }
-        } catch (ResponseException ex) {
-            System.out.println("There was an error: \n" + ex.getMessage());
         }
     }
 
     private void createGame(String[] tokens) {
+        if (loggedIn) {
+            try {
+                if (tokens.length == 2) {
+                    facade.addGame(authToken, tokens[1]);
+                } else {
+                    System.out.println("Incorrect number of arguments");
+                }
+            } catch (ResponseException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
+            }
+        }
     }
 
     private void logoutUser() {
-        try {
-            facade.logoutUser(authToken);
-            loggedIn = false;
-            authToken = "";
-        } catch (ResponseException ex) {
-            System.out.println("There was an error: \n" + ex.getMessage());
+        if (loggedIn) {
+            try {
+                facade.logoutUser(authToken);
+                loggedIn = false;
+                playerName = "";
+                authToken = "";
+            } catch (ResponseException ex) {
+                System.out.println("There was an error: \n" + ex.getMessage());
+            }
         }
     }
 
@@ -129,6 +154,9 @@ public class Client {
             try {
                 AuthData auth = facade.addUser(username, password, email);
                 authToken = auth.authToken();
+                loggedIn = true;
+                playerName = username;
+                System.out.println("All logged in!");
             } catch (ResponseException ex) {
                 System.out.println("There was an error: \n" + ex.getMessage());
             }
@@ -145,6 +173,8 @@ public class Client {
                 AuthData auth = facade.loginUser(username, password);
                 authToken = auth.authToken();
                 loggedIn = true;
+                playerName = username;
+                System.out.println("All logged in!");
             } catch (ResponseException ex) {
                 if (ex.code() == 401) {
                     System.out.println("There was an error with your credentials \n");
