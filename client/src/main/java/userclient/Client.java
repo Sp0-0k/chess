@@ -1,9 +1,10 @@
-package UserClient;
+package userclient;
 
 import java.util.Scanner;
 
-import ResponseException.ResponseException;
-import ServerFacade.ServerFacade;
+import chess.ChessGame;
+import exception.ResponseException;
+import serverfacade.ServerFacade;
 import datamodel.*;
 import ui.*;
 
@@ -102,6 +103,11 @@ public class Client {
                 System.out.println("There was an error: ");
             }
         }
+        var data = new GameData(1, null, "kal", "test", new ChessGame());
+        viewer = new BoardCreator(data, "bob");
+        viewer.drawBoard();
+        viewer = new BoardCreator(data, "kal");
+        viewer.drawBoard();
     }
 
     private void joinGame(String[] tokens) {

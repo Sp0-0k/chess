@@ -1,8 +1,7 @@
-package ServerFacade;
+package serverfacade;
 
-import ResponseException.ResponseException;
+import exception.ResponseException;
 import com.google.gson.Gson;
-import com.google.gson.*;
 import datamodel.*;
 
 import java.net.URI;
