@@ -2,7 +2,6 @@ package userclient;
 
 import java.util.Scanner;
 
-import chess.ChessGame;
 import exception.ResponseException;
 import serverfacade.ServerFacade;
 import datamodel.*;
@@ -94,7 +93,7 @@ public class Client {
                         System.out.println("Sorry that's not a valid game ID");
                         return;
                     }
-                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], playerName);
+                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], " ");
                     viewer.drawBoard();
                 } else {
                     System.out.println("Incorrect number of arguments");
@@ -103,11 +102,6 @@ public class Client {
                 System.out.println("There was an error: ");
             }
         }
-        var data = new GameData(1, null, "kal", "test", new ChessGame());
-        viewer = new BoardCreator(data, "bob");
-        viewer.drawBoard();
-        viewer = new BoardCreator(data, "kal");
-        viewer.drawBoard();
     }
 
     private void joinGame(String[] tokens) {
@@ -126,6 +120,7 @@ public class Client {
                     }
                     int gameID = lastPulledGameList[idToCheck].gameID();
                     facade.joinGame(authToken, tokens[1], gameID);
+                    lastPulledGameList = facade.listGames(authToken);
                     viewer = new BoardCreator(lastPulledGameList[idToCheck], playerName);
                     viewer.drawBoard();
                 } else {
@@ -140,6 +135,8 @@ public class Client {
                 } else {
                     System.out.println("There was an error joining that game, please try again");
                 }
+            } catch (NumberFormatException ex) {
+                System.out.println("Invalid gameID, expecting a number");
             }
         }
     }
@@ -149,7 +146,9 @@ public class Client {
             try {
                 lastPulledGameList = facade.listGames(authToken);
                 for (int i = 0; i < lastPulledGameList.length; ++i) {
-                    System.out.println(lastPulledGameList[i].gameName() + "    Game Number:" + (i + 1));
+                    var curGame = lastPulledGameList[i];
+                    System.out.println(curGame.gameName() + "    Game Number: " + (i + 1) + "   WhitePlayer: "
+                            + curGame.whiteUsername() + "   BlackPlayer: " + curGame.blackUsername());
                 }
                 if (lastPulledGameList.length == 0) {
                     System.out.println("Couldn't find any games");
