@@ -1,5 +1,6 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccesser;
@@ -8,11 +9,18 @@ import dataaccess.SQLDataAccess;
 import datamodel.GameData;
 import io.javalin.*;
 import io.javalin.http.Context;
+import io.javalin.websocket.WsMessageContext;
+import org.eclipse.jetty.websocket.api.Session;
 import service.ServiceException;
 import service.Service;
+import websocket.commands.UserGameCommand;
+import websocket.messages.LoadGameMessage;
+import websocket.messages.NotificationMessage;
+import websocket.messages.ServerMessage;
 
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class Server {
 
@@ -38,6 +46,15 @@ public class Server {
         server.get("game", this::listGames);
         server.post("game", this::createGame);
         server.put("game", this::joinGame);
+        server.ws("ws", ws -> {
+            ws.onConnect(ctx -> {
+                ctx.enableAutomaticPings();
+                System.out.println("Websocket connected");
+            });
+            ws.onMessage(this::decodeWebsocket);
+            ws.onClose(ctx -> System.out.println("Websocket closed"));
+        });
+
 
     }
 
@@ -173,8 +190,55 @@ public class Server {
                 sendError(ex.getMessage(), errorCode, ctx);
             }
         }
-
     }
+
+
+    Map<Integer, Set<Session>> activeGames;
+
+    //WebSocket Handler
+    private void decodeWebsocket(WsMessageContext ctx) {
+        var userCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
+        switch (userCommand.getCommandType()) {
+            case CONNECT -> wsConnect(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+            case MAKE_MOVE -> wsMove(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+            case LEAVE -> wsLeave(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+            case RESIGN -> wsResign(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+        }
+    }
+
+
+    private void wsMove(int gameID, String authToken, Session session) {
+    }
+
+    private void wsConnect(int gameID, String authToken, Session session) {
+        try {
+            var dataTest = new SQLDataAccess();
+            dataTest.getAuthData(authToken);
+            var gameData = dataTest.getGame(gameID);
+            var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Test");
+            var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+            var notifJson = new Gson().toJson(connectedMessage);
+            var gameJson = new Gson().toJson(gameLoad);
+            session.getRemote().sendString(gameJson);
+            var otherUsers = activeGames.get(gameID);
+            for (Session connection : otherUsers) {
+                connection.getRemote().sendString(notifJson);
+            }
+            otherUsers.add(session);
+            activeGames.replace(gameID, otherUsers);
+        } catch (DataAccessException ex) {
+            return;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private void wsResign(int gameID, String authToken, Session session) {
+    }
+
+    private void wsLeave(int gameID, String authToken, Session session) {
+    }
+
 
     public int run(int desiredPort) {
         server.start(desiredPort);

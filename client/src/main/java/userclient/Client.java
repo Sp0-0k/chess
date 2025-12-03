@@ -2,15 +2,18 @@ package userclient;
 
 import java.util.Scanner;
 
+import chess.ChessGame;
 import exception.ResponseException;
 import serverfacade.ServerFacade;
 import datamodel.*;
+import serverfacade.WebsocketFacade;
 import ui.*;
 
 public class Client {
 
     private boolean loggedIn;
     private ServerFacade facade;
+    private WebsocketFacade wsFacade;
     private String authToken;
     private GameData[] lastPulledGameList;
     private BoardCreator viewer;
@@ -18,6 +21,7 @@ public class Client {
 
     public void run() {
         facade = new ServerFacade("http://localhost:8080");
+        wsFacade = new WebsocketFacade("ws://localhost:8080/ws");
         System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
         System.out.println("Welcome to Kirk's Chess App. Type Help to get started.");
         Scanner scanner = new Scanner(System.in);
@@ -93,8 +97,9 @@ public class Client {
                         System.out.println("Sorry that's not a valid game ID");
                         return;
                     }
-                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], " ");
-                    viewer.drawBoard();
+                    wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID());
+//                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], " ");
+//                    viewer.drawBoard();
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }
