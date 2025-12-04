@@ -264,7 +264,9 @@ public class Server {
             } else {
                 return false;
             }
-            return pieceColor == playerColor;
+            if (pieceColor == playerColor) {
+                return playerColor == currGame.getTeamTurn();
+            }
         }
         return false;
     }
@@ -284,7 +286,7 @@ public class Server {
                 updateGame(gameID, gameData);
                 var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
                 var moveMade = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() +
-                        " made the move " + move.toString());
+                        " made the move " + move);
                 var moveJson = new Gson().toJson(moveMade);
                 var loadGameJson = new Gson().toJson(loadGame);
                 for (Session connection : connections) {
@@ -292,11 +294,10 @@ public class Server {
                     if (connection != session) {
                         connection.getRemote().sendString(moveJson);
                     }
-
                 }
-            } else {
-                sendWSError("Move is invalid", session);
+                return;
             }
+            sendWSError("Move is invalid", session);
         } catch (Exception ex) {
             sendWSError(ex.getMessage(), session);
         }
@@ -349,6 +350,7 @@ public class Server {
                     connection.getRemote().sendString(messageJson);
                 }
             }
+            sendWSError("request deined, you are an observer", session);
         } catch (Exception ex) {
             sendWSError(ex.getMessage(), session);
         }
