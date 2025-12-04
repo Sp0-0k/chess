@@ -61,17 +61,12 @@ public class BoardCreator {
             positionsToMark.add(move.getEndPosition());
         }
         positionsToMark.add(piecePos);
-        boolean marked = false;
         if (viewerColor == ChessGame.TeamColor.WHITE) {
             print(resetBg + "     a    b    c    d    e    f    g    h ");
             String outputString = "";
             for (int j = 8; j > 0; --j) {
                 for (int i = 0; i < 10; ++i) {
-                    if (i != 0 && i != 9) {
-                        var posToCheck = new ChessPosition(j, i);
-                        marked = (positionsToMark.contains(posToCheck));
-                    }
-                    outputString = outputTile(j, i, outputString, marked);
+                    outputString = outputTile(j, i, outputString, setMark(j, i, positionsToMark));
                 }
                 outputString = outputString.concat("\n");
             }
@@ -83,11 +78,7 @@ public class BoardCreator {
             String outputString = "";
             for (int j = 1; j < 9; ++j) {
                 for (int i = 9; i >= 0; --i) {
-                    if (i != 0 && i != 9) {
-                        var posToCheck = new ChessPosition(j, i);
-                        marked = (positionsToMark.contains(posToCheck));
-                    }
-                    outputString = outputTile(j, i, outputString, marked);
+                    outputString = outputTile(j, i, outputString, setMark(j, i, positionsToMark));
                 }
                 outputString = outputString.concat("\n");
             }
@@ -95,6 +86,14 @@ public class BoardCreator {
             print(outputString);
             print(bgGray);
         }
+    }
+
+    private boolean setMark(int j, int i, Collection<ChessPosition> positions) {
+        if (i != 0 && i != 9) {
+            var posToCheck = new ChessPosition(j, i);
+            return positions.contains(posToCheck);
+        }
+        return false;
     }
 
     private String assignColors(String piece, ChessGame.TeamColor color) {
