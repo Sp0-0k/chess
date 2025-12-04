@@ -55,7 +55,7 @@ public class Server {
                 System.out.println("Websocket connected");
             });
             ws.onMessage(this::decodeWebsocket);
-            ws.onClose(_ -> System.out.println("Websocket closed"));
+            ws.onClose(context -> System.out.println("Websocket closed"));
         });
 
 
