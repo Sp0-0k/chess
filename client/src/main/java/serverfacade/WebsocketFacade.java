@@ -2,6 +2,7 @@ package serverfacade;
 
 import chess.ChessMove;
 import com.google.gson.Gson;
+import datamodel.GameData;
 import jakarta.websocket.*;
 import ui.BoardCreator;
 import websocket.commands.MakeMoveCommand;
@@ -15,9 +16,11 @@ import java.util.Map;
 
 public class WebsocketFacade extends Endpoint {
     private BoardCreator viewer;
+    public GameData gameState;
     private String serverUrl;
     private WebSocketContainer container;
     private Session session;
+    private String currPlayerName;
 
     public WebsocketFacade(String url) {
         try {
@@ -32,8 +35,8 @@ public class WebsocketFacade extends Endpoint {
                     switch (type) {
                         case "LOAD_GAME":
                             var gameMessage = new Gson().fromJson(message, LoadGameMessage.class);
-                            var gameState = gameMessage.getGame();
-                            viewer = new BoardCreator(gameState, " ");
+                            gameState = gameMessage.getGame();
+                            viewer = new BoardCreator(gameState, currPlayerName);
                             viewer.drawBoard();
                             break;
                         case "ERROR":
@@ -52,7 +55,8 @@ public class WebsocketFacade extends Endpoint {
         }
     }
 
-    public void wsConnect(String authToken, int gameID) {
+    public void wsConnect(String authToken, int gameID, String playerName) {
+        currPlayerName = playerName;
         var command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
         sendCommand(command);
     }

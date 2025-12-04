@@ -2,6 +2,7 @@ package userclient;
 
 import java.util.Scanner;
 
+import chess.ChessPosition;
 import exception.ResponseException;
 import serverfacade.ServerFacade;
 import datamodel.*;
@@ -96,7 +97,7 @@ public class Client {
                         System.out.println("Sorry that's not a valid game ID");
                         return;
                     }
-                    wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID());
+                    wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID(), playerName);
                     boolean connected = true;
                     Scanner scanner = new Scanner(System.in);
                     while (connected) {
@@ -132,9 +133,17 @@ public class Client {
                     }
                     int gameID = lastPulledGameList[idToCheck].gameID();
                     facade.joinGame(authToken, tokens[1], gameID);
-                    lastPulledGameList = facade.listGames(authToken);
-                    viewer = new BoardCreator(lastPulledGameList[idToCheck], playerName);
-                    viewer.drawBoard();
+                    wsFacade.wsConnect(authToken, gameID, playerName);
+                    boolean connected = true;
+                    Scanner scanner = new Scanner(System.in);
+                    while (connected) {
+                        String line = scanner.nextLine();
+                        if (line.equalsIgnoreCase("leave")) {
+                            connected = false;
+                        } else {
+                            parseGameCommands(line);
+                        }
+                    }
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }
@@ -151,6 +160,57 @@ public class Client {
                 System.out.println("Invalid gameID, expecting a number");
             }
         }
+    }
+
+    private void parseGameCommands(String line) {
+        String[] tokens = line.toLowerCase().split(" ");
+        String cmd = (tokens.length > 0) ? tokens[0] : "help";
+        switch (cmd) {
+//            case "leave" -> leaveGame(tokens);
+//            case "resign" -> resignGame(tokens);
+//            case "move" -> moveGame(tokens);
+            case "show" -> showGame(tokens);
+            case "redraw" -> redrawGame();
+            default -> gameHelp();
+        }
+
+    }
+
+    private void redrawGame() {
+        viewer = new BoardCreator(wsFacade.gameState, playerName);
+        viewer.drawBoard();
+    }
+
+    private void showGame(String[] tokens) {
+        if (tokens.length != 2) {
+            System.out.println("Unexpected number of arguments, please try again");
+            return;
+        }
+        String locationToCheck = tokens[1].toLowerCase();
+        if (!locationToCheck.matches("^[a-h][1-8]$")) {
+            System.out.println("Invalid location, format your location like this: [letter][number]");
+        }
+        int col = locationToCheck.charAt(0) - 'a' + 1;
+        int row = locationToCheck.charAt(1) - '0';
+        var posToCheck = new ChessPosition(row, col);
+        var currGame = wsFacade.gameState.game();
+        var listOfMoves = currGame.validMoves(posToCheck);
+        viewer = new BoardCreator(wsFacade.gameState, playerName);
+        viewer.drawBoard(listOfMoves, posToCheck);
+    }
+
+    private void gameHelp() {
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_BLUE);
+        System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
+        System.out.println("Here's what you can do in game:");
+        System.out.println("leave -- exit the game");
+        System.out.println("resign -- resign from the match");
+        System.out.println("move [start] [end]-- make a move uses letter then number format");
+        System.out.println("show [start] -- shows all valid moves for the piece");
+        System.out.println("redraw -- redraws the board for you");
+        System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE);
+        System.out.print(EscapeSequences.SET_BG_COLOR_DARK_GREY);
+
     }
 
     private void listGames() {

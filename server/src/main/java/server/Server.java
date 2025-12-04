@@ -262,58 +262,91 @@ public class Server {
 
     private void wsMove(int gameID, String authToken, Session session, ChessMove move) {
         var connections = activeGames.get(gameID);
-        if (!connections.contains(session)) {
+        var authData = getAuthData(authToken);
+        if (!connections.contains(session) || authData == null) {
             return;
         }
-        var authData = getAuthData(authToken);
-        if (authData != null) {
-            var gameData = getGame(gameID);
-            if (validateMove(move, gameData, authData.username())) {
-                try {
-                    gameData.game().makeMove(move);
-                    updateGame(gameID, gameData);
-                    var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
-                    var loadGameJson = new Gson().toJson(loadGame);
-                    for (Session connection : connections) {
-                        connection.getRemote().sendString(loadGameJson);
-                    }
-                } catch (Exception ex) {
-                    System.out.println(ex.getMessage());
+        var gameData = getGame(gameID);
+        if (validateMove(move, gameData, authData.username())) {
+            try {
+                gameData.game().makeMove(move);
+                updateGame(gameID, gameData);
+                var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+                var loadGameJson = new Gson().toJson(loadGame);
+                for (Session connection : connections) {
+                    connection.getRemote().sendString(loadGameJson);
                 }
-
+            } catch (Exception ex) {
+                System.out.println(ex.getMessage());
             }
 
         }
+
     }
 
     private void wsConnect(int gameID, String authToken, Session session) {
         try {
             var gameData = getGame(gameID);
-            getAuthData(authToken);
-            var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Test");
-            var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
-            var notifJson = new Gson().toJson(connectedMessage);
-            var gameJson = new Gson().toJson(gameLoad);
-            session.getRemote().sendString(gameJson);
-            var otherUsers = activeGames.get(gameID);
-            for (Session connection : otherUsers) {
-                connection.getRemote().sendString(notifJson);
+            var authData = getAuthData(authToken);
+            if (authData != null) {
+                var playerName = authData.username();
+                var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName +
+                        " has joined");
+                var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+                var notifJson = new Gson().toJson(connectedMessage);
+                var gameJson = new Gson().toJson(gameLoad);
+                session.getRemote().sendString(gameJson);
+                var otherUsers = activeGames.get(gameID);
+                for (Session connection : otherUsers) {
+                    connection.getRemote().sendString(notifJson);
+                }
+                otherUsers.add(session);
+                activeGames.replace(gameID, otherUsers);
             }
-            otherUsers.add(session);
-            activeGames.replace(gameID, otherUsers);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
     }
 
     private void wsResign(int gameID, String authToken, Session session) {
+        try {
+            var connections = activeGames.get(gameID);
+            if (!connections.contains(session)) {
+                return;
+            }
+            var authData = getAuthData(authToken);
+            var gameData = getGame(gameID);
+            if (authData == null) {
+                return;
+            }
+            var playerName = authData.username();
+            if (Objects.equals(playerName, gameData.whiteUsername()) || Objects.equals(playerName, gameData.blackUsername())) {
+                var resignMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " has resigned"
+                        + " the game is over");
+                var messageJson = new Gson().toJson(resignMessage);
+                for (Session connection : connections) {
+                    connection.getRemote().sendString(messageJson);
+                }
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
     private void wsLeave(int gameID, String authToken, Session session) {
         try {
             var connections = activeGames.get(gameID);
+            var gameData = getGame(gameID);
             var playerName = Objects.requireNonNull(getAuthData(authToken)).username();
-            var leftMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " left");
+            if (Objects.equals(playerName, gameData.whiteUsername())) {
+                var updatedGame = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+                updateGame(gameID, updatedGame);
+            }
+            if (Objects.equals(playerName, gameData.blackUsername())) {
+                var updatedGame = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+                updateGame(gameID, updatedGame);
+            }
+            var leftMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " left the game");
             var messageJson = new Gson().toJson(leftMessage);
             connections.remove(session);
             activeGames.replace(gameID, connections);

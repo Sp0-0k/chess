@@ -3,6 +3,8 @@ package ui;
 import chess.*;
 import datamodel.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Objects;
 
 public class BoardCreator {
@@ -28,7 +30,7 @@ public class BoardCreator {
             String outputString = "";
             for (int j = 8; j > 0; --j) {
                 for (int i = 0; i < 10; ++i) {
-                    outputString = outputTile(j, i, outputString);
+                    outputString = outputTile(j, i, outputString, false);
                 }
                 outputString = outputString.concat("\n");
             }
@@ -40,7 +42,7 @@ public class BoardCreator {
             String outputString = "";
             for (int j = 1; j < 9; ++j) {
                 for (int i = 9; i >= 0; --i) {
-                    outputString = outputTile(j, i, outputString);
+                    outputString = outputTile(j, i, outputString, false);
                 }
                 outputString = outputString.concat("\n");
             }
@@ -50,6 +52,49 @@ public class BoardCreator {
         }
 
 
+    }
+
+    public void drawBoard(Collection<ChessMove> moves, ChessPosition piecePos) {
+        String bgGray = EscapeSequences.SET_BG_COLOR_DARK_GREY;
+        Collection<ChessPosition> positionsToMark = new ArrayList<>();
+        for (ChessMove move : moves) {
+            positionsToMark.add(move.getEndPosition());
+        }
+        positionsToMark.add(piecePos);
+        boolean marked = false;
+        if (viewerColor == ChessGame.TeamColor.WHITE) {
+            print(resetBg + "     a    b    c    d    e    f    g    h ");
+            String outputString = "";
+            for (int j = 8; j > 0; --j) {
+                for (int i = 0; i < 10; ++i) {
+                    if (i != 0 && i != 9) {
+                        var posToCheck = new ChessPosition(j, i);
+                        marked = (positionsToMark.contains(posToCheck));
+                    }
+                    outputString = outputTile(j, i, outputString, marked);
+                }
+                outputString = outputString.concat("\n");
+            }
+            outputString = outputString.concat(resetBg + "     a    b    c    d    e    f    g    h ");
+            print(outputString);
+
+        } else {
+            print(resetBg + "     h    g    f    e    d    c    b    a ");
+            String outputString = "";
+            for (int j = 1; j < 9; ++j) {
+                for (int i = 9; i >= 0; --i) {
+                    if (i != 0 && i != 9) {
+                        var posToCheck = new ChessPosition(j, i);
+                        marked = (positionsToMark.contains(posToCheck));
+                    }
+                    outputString = outputTile(j, i, outputString, marked);
+                }
+                outputString = outputString.concat("\n");
+            }
+            outputString = outputString.concat(resetBg + "     h    g    f    e    d    c    b    a ");
+            print(outputString);
+            print(bgGray);
+        }
     }
 
     private String assignColors(String piece, ChessGame.TeamColor color) {
@@ -80,13 +125,17 @@ public class BoardCreator {
         };
     }
 
-    private String outputTile(int row, int col, String curOutput) {
+    private String outputTile(int row, int col, String curOutput, boolean marked) {
         String whiteTile = EscapeSequences.SET_BG_COLOR_LIGHT_GREY;
         String blackTile = EscapeSequences.SET_BG_COLOR_DARK_GREY;
-
+        String greenTile = EscapeSequences.SET_BG_COLOR_GREEN;
 
         if (col == 0 || col == 9) {
             return curOutput.concat(resetBg + " " + row + " ");
+        }
+        if (marked) {
+            var greenSquare = greenTile + " " + assignColors(getPieceType(row, col), curPieceColor) + " ";
+            return curOutput.concat(greenSquare);
         } else {
             if ((row + col) % 2 == 1) {
                 var whiteSquare = whiteTile + " " + assignColors(getPieceType(row, col), curPieceColor) + " ";
