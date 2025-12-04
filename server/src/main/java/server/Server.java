@@ -1,11 +1,13 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
 import dataaccess.DataAccesser;
 import dataaccess.MemoryDataAccess;
 import dataaccess.SQLDataAccess;
+import datamodel.AuthData;
 import datamodel.GameData;
 import io.javalin.*;
 import io.javalin.http.Context;
@@ -13,6 +15,7 @@ import io.javalin.websocket.WsMessageContext;
 import org.eclipse.jetty.websocket.api.Session;
 import service.ServiceException;
 import service.Service;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
@@ -52,7 +55,7 @@ public class Server {
                 System.out.println("Websocket connected");
             });
             ws.onMessage(this::decodeWebsocket);
-            ws.onClose(ctx -> System.out.println("Websocket closed"));
+            ws.onClose(_ -> System.out.println("Websocket closed"));
         });
 
 
@@ -200,21 +203,93 @@ public class Server {
         var userCommand = new Gson().fromJson(ctx.message(), UserGameCommand.class);
         switch (userCommand.getCommandType()) {
             case CONNECT -> wsConnect(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
-            case MAKE_MOVE -> wsMove(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+            case MAKE_MOVE -> {
+                var moveCommand = new Gson().fromJson(ctx.message(), MakeMoveCommand.class);
+                wsMove(moveCommand.getGameID(), moveCommand.getAuthToken(), ctx.session, moveCommand.getMove());
+            }
             case LEAVE -> wsLeave(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
             case RESIGN -> wsResign(userCommand.getGameID(), userCommand.getAuthToken(), ctx.session);
+            default -> throw new IllegalStateException("Unexpected value: " + userCommand.getCommandType());
         }
     }
 
+    private GameData getGame(int gameID) {
+        try {
+            var dataTest = new SQLDataAccess();
+            return dataTest.getGame(gameID);
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+    }
 
-    private void wsMove(int gameID, String authToken, Session session) {
+    private AuthData getAuthData(String authToken) {
+        try {
+            var dataTest = new SQLDataAccess();
+            return dataTest.getAuthData(authToken);
+        } catch (Exception ex) {
+            return null;
+        }
+    }
+
+    private void updateGame(int gameID, GameData data) {
+        try {
+            var dataTest = new SQLDataAccess();
+            dataTest.removeGame(gameID);
+            dataTest.addGameData(data);
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
+    }
+
+    private boolean validateMove(ChessMove moveToMake, GameData gameData, String playerName) {
+        ChessGame currGame = gameData.game();
+        var validMoves = currGame.validMoves(moveToMake.getStartPosition());
+        var pieceColor = currGame.getBoard().getPiece(moveToMake.getStartPosition()).getTeamColor();
+        ChessGame.TeamColor playerColor;
+        if (validMoves.contains(moveToMake)) {
+            if (Objects.equals(playerName, gameData.whiteUsername())) {
+                playerColor = ChessGame.TeamColor.WHITE;
+            } else if (Objects.equals(playerName, gameData.blackUsername())) {
+                playerColor = ChessGame.TeamColor.BLACK;
+            } else {
+                return false;
+            }
+            return pieceColor == playerColor;
+        }
+        return false;
+    }
+
+
+    private void wsMove(int gameID, String authToken, Session session, ChessMove move) {
+        var connections = activeGames.get(gameID);
+        if (!connections.contains(session)) {
+            return;
+        }
+        var authData = getAuthData(authToken);
+        if (authData != null) {
+            var gameData = getGame(gameID);
+            if (validateMove(move, gameData, authData.username())) {
+                try {
+                    gameData.game().makeMove(move);
+                    updateGame(gameID, gameData);
+                    var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+                    var loadGameJson = new Gson().toJson(loadGame);
+                    for (Session connection : connections) {
+                        connection.getRemote().sendString(loadGameJson);
+                    }
+                } catch (Exception ex) {
+                    System.out.println(ex.getMessage());
+                }
+
+            }
+
+        }
     }
 
     private void wsConnect(int gameID, String authToken, Session session) {
         try {
-            var dataTest = new SQLDataAccess();
-            dataTest.getAuthData(authToken);
-            var gameData = dataTest.getGame(gameID);
+            var gameData = getGame(gameID);
+            getAuthData(authToken);
             var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, "Test");
             var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
             var notifJson = new Gson().toJson(connectedMessage);
@@ -226,8 +301,6 @@ public class Server {
             }
             otherUsers.add(session);
             activeGames.replace(gameID, otherUsers);
-        } catch (DataAccessException ex) {
-            return;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -237,6 +310,19 @@ public class Server {
     }
 
     private void wsLeave(int gameID, String authToken, Session session) {
+        try {
+            var connections = activeGames.get(gameID);
+            var playerName = Objects.requireNonNull(getAuthData(authToken)).username();
+            var leftMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " left");
+            var messageJson = new Gson().toJson(leftMessage);
+            connections.remove(session);
+            activeGames.replace(gameID, connections);
+            for (Session connection : connections) {
+                connection.getRemote().sendString(messageJson);
+            }
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
     }
 
 
