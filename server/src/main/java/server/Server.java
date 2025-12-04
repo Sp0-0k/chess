@@ -292,12 +292,42 @@ public class Server {
                         " made the move " + move);
                 var moveJson = new Gson().toJson(moveMade);
                 var loadGameJson = new Gson().toJson(loadGame);
+                var checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, null);
+                if (gameData.game().isInCheck(ChessGame.TeamColor.WHITE)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.whiteUsername() + " is in check");
+                }
+                if (gameData.game().isInCheck(ChessGame.TeamColor.BLACK)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.blackUsername() + " is in check");
+                }
+                if (gameData.game().isInCheckmate(ChessGame.TeamColor.WHITE)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.whiteUsername() + " is in checkmate");
+                }
+                if (gameData.game().isInCheckmate(ChessGame.TeamColor.BLACK)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.blackUsername() + " is in checkmate");
+                }
+                if (gameData.game().isInStalemate(ChessGame.TeamColor.WHITE)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.whiteUsername() + " is in stalemate");
+                }
+                if (gameData.game().isInStalemate(ChessGame.TeamColor.BLACK)) {
+                    checkNotif = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION,
+                            gameData.blackUsername() + " is in stalemate");
+                }
+                var jsonCheck = new Gson().toJson(checkNotif);
                 for (Session connection : connections) {
                     connection.getRemote().sendString(loadGameJson);
                     if (connection != session) {
                         connection.getRemote().sendString(moveJson);
                     }
+                    if (checkNotif.getMessage() != null) {
+                        connection.getRemote().sendString(jsonCheck);
+                    }
                 }
+
                 return;
             }
             sendWSError("Move is invalid", session);
