@@ -107,6 +107,8 @@ public class Client {
                     String line = scanner.nextLine();
                     if (line.equalsIgnoreCase("leave")) {
                         connected = false;
+                    } else if (line.equalsIgnoreCase("redraw")) {
+                        redrawGame();
                     } else {
                         System.out.println("Enter 'leave' to stop watching");
                     }
