@@ -337,6 +337,7 @@ public class Server {
         try {
             var connections = activeGames.get(gameID);
             if (!connections.contains(session)) {
+                sendWSError("Cannot do that command", session);
                 return;
             }
             var authData = getAuthData(authToken);
@@ -349,6 +350,8 @@ public class Server {
                 for (Session connection : connections) {
                     connection.getRemote().sendString(messageJson);
                 }
+                activeGames.remove(gameID);
+                return;
             }
             sendWSError("request deined, you are an observer", session);
         } catch (Exception ex) {
