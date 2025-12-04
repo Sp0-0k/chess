@@ -216,7 +216,12 @@ public class Server {
     private GameData getGame(int gameID) throws Exception {
         try {
             var dataTest = new SQLDataAccess();
-            return dataTest.getGame(gameID);
+            var returnData = dataTest.getGame(gameID);
+            if (returnData == null) {
+                throw new Exception();
+            } else {
+                return returnData;
+            }
         } catch (Exception ex) {
             throw new Exception("Can't find game");
         }
@@ -225,7 +230,12 @@ public class Server {
     private AuthData getAuthData(String authToken) throws Exception {
         try {
             var dataTest = new SQLDataAccess();
-            return dataTest.getAuthData(authToken);
+            var returnData = dataTest.getAuthData(authToken);
+            if (returnData == null) {
+                throw new Exception();
+            } else {
+                return returnData;
+            }
         } catch (Exception ex) {
             throw new Exception("Unauthorized");
         }
@@ -264,7 +274,7 @@ public class Server {
         try {
             var connections = activeGames.get(gameID);
             var authData = getAuthData(authToken);
-            if (!connections.contains(session) || authData == null) {
+            if (!connections.contains(session)) {
                 sendWSError("Unauthorized", session);
                 return;
             }
@@ -273,9 +283,16 @@ public class Server {
                 gameData.game().makeMove(move);
                 updateGame(gameID, gameData);
                 var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+                var moveMade = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, authData.username() +
+                        " made the move " + move.toString());
+                var moveJson = new Gson().toJson(moveMade);
                 var loadGameJson = new Gson().toJson(loadGame);
                 for (Session connection : connections) {
                     connection.getRemote().sendString(loadGameJson);
+                    if (connection != session) {
+                        connection.getRemote().sendString(moveJson);
+                    }
+
                 }
             } else {
                 sendWSError("Move is invalid", session);
@@ -290,27 +307,26 @@ public class Server {
         try {
             var gameData = getGame(gameID);
             var authData = getAuthData(authToken);
-            if (authData != null) {
-                var playerName = authData.username();
-                var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName +
-                        " has joined");
-                var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
-                var notifJson = new Gson().toJson(connectedMessage);
-                var gameJson = new Gson().toJson(gameLoad);
-                session.getRemote().sendString(gameJson);
-                if (!activeGames.isEmpty()) {
-                    var otherUsers = activeGames.get(gameID);
-                    for (Session connection : otherUsers) {
-                        connection.getRemote().sendString(notifJson);
-                    }
-                    otherUsers.add(session);
-                    activeGames.replace(gameID, otherUsers);
-                } else {
-                    Set<Session> sessions = new HashSet<>();
-                    sessions.add(session);
-                    activeGames.put(gameID, sessions);
+            var playerName = authData.username();
+            var connectedMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName +
+                    " has joined");
+            var gameLoad = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
+            var notifJson = new Gson().toJson(connectedMessage);
+            var gameJson = new Gson().toJson(gameLoad);
+            session.getRemote().sendString(gameJson);
+            if (!activeGames.isEmpty() && activeGames.get(gameID) != null) {
+                var otherUsers = activeGames.get(gameID);
+                for (Session connection : otherUsers) {
+                    connection.getRemote().sendString(notifJson);
                 }
+                otherUsers.add(session);
+                activeGames.replace(gameID, otherUsers);
+            } else {
+                Set<Session> sessions = new HashSet<>();
+                sessions.add(session);
+                activeGames.put(gameID, sessions);
             }
+
         } catch (Exception e) {
             sendWSError(e.getMessage(), session);
         }
@@ -324,9 +340,6 @@ public class Server {
             }
             var authData = getAuthData(authToken);
             var gameData = getGame(gameID);
-            if (authData == null) {
-                return;
-            }
             var playerName = authData.username();
             if (Objects.equals(playerName, gameData.whiteUsername()) || Objects.equals(playerName, gameData.blackUsername())) {
                 var resignMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " has resigned"
