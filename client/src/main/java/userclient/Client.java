@@ -106,11 +106,13 @@ public class Client {
                 while (connected) {
                     String line = scanner.nextLine();
                     if (line.equalsIgnoreCase("leave")) {
+                        leaveGame();
                         connected = false;
-                    } else if (line.equalsIgnoreCase("redraw")) {
-                        redrawGame();
+                    }
+                    if (line.equalsIgnoreCase("move")) {
+                        System.out.println("You can't make moves as an observer");
                     } else {
-                        System.out.println("Enter 'leave' to stop watching");
+                        parseGameCommands(line);
                     }
                 }
             } else {
@@ -244,8 +246,8 @@ public class Client {
         System.out.print(EscapeSequences.SET_BG_COLOR_BLACK);
         System.out.println("Here's what you can do in game:");
         System.out.println("leave -- exit the game");
-        System.out.println("resign -- resign from the match");
-        System.out.println("move [start] [end]-- make a move uses letter then number format");
+        System.out.println("resign -- resign from the match -- only players ");
+        System.out.println("move [start] [end]-- make a move uses letter then number format -- only players");
         System.out.println("show [start] -- shows all valid moves for the piece");
         System.out.println("redraw -- redraws the board for you");
         System.out.print(EscapeSequences.SET_TEXT_COLOR_WHITE);
