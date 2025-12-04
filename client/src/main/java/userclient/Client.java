@@ -2,7 +2,6 @@ package userclient;
 
 import java.util.Scanner;
 
-import chess.ChessGame;
 import exception.ResponseException;
 import serverfacade.ServerFacade;
 import datamodel.*;
@@ -98,8 +97,16 @@ public class Client {
                         return;
                     }
                     wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID());
-//                    viewer = new BoardCreator(lastPulledGameList[Integer.parseInt(tokens[1]) - 1], " ");
-//                    viewer.drawBoard();
+                    boolean connected = true;
+                    Scanner scanner = new Scanner(System.in);
+                    while (connected) {
+                        String line = scanner.nextLine();
+                        if (line.equalsIgnoreCase("leave")) {
+                            connected = false;
+                        } else {
+                            System.out.println("Enter 'leave' to stop watching");
+                        }
+                    }
                 } else {
                     System.out.println("Incorrect number of arguments");
                 }

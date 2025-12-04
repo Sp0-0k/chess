@@ -1,11 +1,14 @@
 package serverfacade;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import jakarta.websocket.*;
 import ui.BoardCreator;
+import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
-import websocket.messages.ServerMessage;
+import websocket.messages.NotificationMessage;
 
 import java.net.URI;
 import java.util.Map;
@@ -33,8 +36,13 @@ public class WebsocketFacade extends Endpoint {
                             viewer = new BoardCreator(gameState, " ");
                             viewer.drawBoard();
                             break;
-//                        case "ERROR" -> decodeTo = ServerMessage.ServerMessageType.ERROR;
-//                        default -> decodeTo = ServerMessage.ServerMessageType.NOTIFICATION;
+                        case "ERROR":
+                            var errorMessage = new Gson().fromJson(message, ErrorMessage.class);
+                            System.out.println(errorMessage.getErrorMessage());
+                            break;
+                        default:
+                            var notification = new Gson().fromJson(message, NotificationMessage.class);
+                            System.out.println(notification.getMessage());
                     }
 
                 }
@@ -46,6 +54,25 @@ public class WebsocketFacade extends Endpoint {
 
     public void wsConnect(String authToken, int gameID) {
         var command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+        sendCommand(command);
+    }
+
+    public void wsMakeMove(String authToken, int gameID, ChessMove move) {
+        var command = new MakeMoveCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID, move);
+        sendCommand(command);
+    }
+
+    public void wsLeave(String authToken, int gameID) {
+        var command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+        sendCommand(command);
+    }
+
+    public void wsResign(String authToken, int gameID) {
+        var command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        sendCommand(command);
+    }
+
+    public void sendCommand(UserGameCommand command) {
         var json = new Gson().toJson(command);
         try {
             session.getBasicRemote().sendText(json);
