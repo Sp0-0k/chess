@@ -2,6 +2,7 @@ package userclient;
 
 import java.util.Scanner;
 
+import chess.ChessMove;
 import chess.ChessPosition;
 import exception.ResponseException;
 import serverfacade.ServerFacade;
@@ -168,12 +169,36 @@ public class Client {
         switch (cmd) {
 //            case "leave" -> leaveGame(tokens);
 //            case "resign" -> resignGame(tokens);
-//            case "move" -> moveGame(tokens);
+            case "move" -> moveGame(tokens);
             case "show" -> showGame(tokens);
             case "redraw" -> redrawGame();
             default -> gameHelp();
         }
 
+    }
+
+    private void moveGame(String[] tokens) {
+        if (tokens.length != 3) {
+            System.out.println("Unexpected number of arguments, please try again");
+            return;
+        }
+
+        String startPos = tokens[1].toLowerCase();
+        String endPos = tokens[2].toLowerCase();
+        if (!startPos.matches("^[a-h][1-8]$") || !endPos.matches("^[a-h][1-8]$")) {
+            System.out.println("Invalid location, format your location like this: [letter][number]");
+            return;
+        }
+        int startCol = startPos.charAt(0) - 'a' + 1;
+        int startRow = startPos.charAt(1) - '0';
+        int endCol = endPos.charAt(0) - 'a' + 1;
+        int endRow = endPos.charAt(1) - '0';
+
+        var start = new ChessPosition(startRow, startCol);
+        var end = new ChessPosition(endRow, endCol);
+        ChessMove moveToTry = new ChessMove(start, end, null);
+        var game = wsFacade.gameState;
+        wsFacade.wsMakeMove(authToken, game.gameID(), moveToTry);
     }
 
     private void redrawGame() {
@@ -189,6 +214,7 @@ public class Client {
         String locationToCheck = tokens[1].toLowerCase();
         if (!locationToCheck.matches("^[a-h][1-8]$")) {
             System.out.println("Invalid location, format your location like this: [letter][number]");
+            return;
         }
         int col = locationToCheck.charAt(0) - 'a' + 1;
         int row = locationToCheck.charAt(1) - '0';

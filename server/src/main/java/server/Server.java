@@ -17,13 +17,12 @@ import service.ServiceException;
 import service.Service;
 import websocket.commands.MakeMoveCommand;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.NotificationMessage;
 import websocket.messages.ServerMessage;
 
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 public class Server {
 
@@ -40,6 +39,7 @@ public class Server {
         }
         this.serializer = new Gson();
         userService = new Service(dataAccess);
+        this.activeGames = new HashMap<>();
 
         server = Javalin.create(config -> config.staticFiles.add("web"));
         server.delete("db", this::delete);
@@ -213,31 +213,31 @@ public class Server {
         }
     }
 
-    private GameData getGame(int gameID) {
+    private GameData getGame(int gameID) throws Exception {
         try {
             var dataTest = new SQLDataAccess();
             return dataTest.getGame(gameID);
         } catch (Exception ex) {
-            throw new RuntimeException(ex);
+            throw new Exception("Can't find game");
         }
     }
 
-    private AuthData getAuthData(String authToken) {
+    private AuthData getAuthData(String authToken) throws Exception {
         try {
             var dataTest = new SQLDataAccess();
             return dataTest.getAuthData(authToken);
         } catch (Exception ex) {
-            return null;
+            throw new Exception("Unauthorized");
         }
     }
 
-    private void updateGame(int gameID, GameData data) {
+    private void updateGame(int gameID, GameData data) throws Exception {
         try {
             var dataTest = new SQLDataAccess();
             dataTest.removeGame(gameID);
             dataTest.addGameData(data);
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            throw new Exception("Cannot update game");
         }
     }
 
@@ -261,14 +261,15 @@ public class Server {
 
 
     private void wsMove(int gameID, String authToken, Session session, ChessMove move) {
-        var connections = activeGames.get(gameID);
-        var authData = getAuthData(authToken);
-        if (!connections.contains(session) || authData == null) {
-            return;
-        }
-        var gameData = getGame(gameID);
-        if (validateMove(move, gameData, authData.username())) {
-            try {
+        try {
+            var connections = activeGames.get(gameID);
+            var authData = getAuthData(authToken);
+            if (!connections.contains(session) || authData == null) {
+                sendWSError("Unauthorized", session);
+                return;
+            }
+            var gameData = getGame(gameID);
+            if (validateMove(move, gameData, authData.username())) {
                 gameData.game().makeMove(move);
                 updateGame(gameID, gameData);
                 var loadGame = new LoadGameMessage(ServerMessage.ServerMessageType.LOAD_GAME, gameData);
@@ -276,10 +277,11 @@ public class Server {
                 for (Session connection : connections) {
                     connection.getRemote().sendString(loadGameJson);
                 }
-            } catch (Exception ex) {
-                System.out.println(ex.getMessage());
+            } else {
+                sendWSError("Move is invalid", session);
             }
-
+        } catch (Exception ex) {
+            sendWSError(ex.getMessage(), session);
         }
 
     }
@@ -296,15 +298,21 @@ public class Server {
                 var notifJson = new Gson().toJson(connectedMessage);
                 var gameJson = new Gson().toJson(gameLoad);
                 session.getRemote().sendString(gameJson);
-                var otherUsers = activeGames.get(gameID);
-                for (Session connection : otherUsers) {
-                    connection.getRemote().sendString(notifJson);
+                if (!activeGames.isEmpty()) {
+                    var otherUsers = activeGames.get(gameID);
+                    for (Session connection : otherUsers) {
+                        connection.getRemote().sendString(notifJson);
+                    }
+                    otherUsers.add(session);
+                    activeGames.replace(gameID, otherUsers);
+                } else {
+                    Set<Session> sessions = new HashSet<>();
+                    sessions.add(session);
+                    activeGames.put(gameID, sessions);
                 }
-                otherUsers.add(session);
-                activeGames.replace(gameID, otherUsers);
             }
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            sendWSError(e.getMessage(), session);
         }
     }
 
@@ -329,7 +337,7 @@ public class Server {
                 }
             }
         } catch (Exception ex) {
-            System.out.println(ex.getMessage());
+            sendWSError(ex.getMessage(), session);
         }
     }
 
@@ -353,6 +361,16 @@ public class Server {
             for (Session connection : connections) {
                 connection.getRemote().sendString(messageJson);
             }
+        } catch (Exception ex) {
+            sendWSError(ex.getMessage(), session);
+        }
+    }
+
+    private void sendWSError(String message, Session session) {
+        try {
+            var error = new ErrorMessage(ServerMessage.ServerMessageType.ERROR, message);
+            var jsonError = new Gson().toJson(error);
+            session.getRemote().sendString(jsonError);
         } catch (Exception ex) {
             System.out.println(ex.getMessage());
         }
