@@ -140,6 +140,7 @@ public class Client {
                     while (connected) {
                         String line = scanner.nextLine();
                         if (line.equalsIgnoreCase("leave")) {
+                            leaveGame();
                             connected = false;
                         } else {
                             parseGameCommands(line);
@@ -167,14 +168,23 @@ public class Client {
         String[] tokens = line.toLowerCase().split(" ");
         String cmd = (tokens.length > 0) ? tokens[0] : "help";
         switch (cmd) {
-//            case "leave" -> leaveGame(tokens);
-//            case "resign" -> resignGame(tokens);
+            case "resign" -> resignGame();
             case "move" -> moveGame(tokens);
             case "show" -> showGame(tokens);
             case "redraw" -> redrawGame();
             default -> gameHelp();
         }
 
+    }
+
+
+    private void leaveGame() {
+        wsFacade.wsLeave(authToken, wsFacade.gameState.gameID());
+        System.out.println("You've left the game");
+    }
+
+    private void resignGame() {
+        wsFacade.wsResign(authToken, wsFacade.gameState.gameID());
     }
 
     private void moveGame(String[] tokens) {

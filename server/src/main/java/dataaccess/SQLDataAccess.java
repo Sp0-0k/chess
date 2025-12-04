@@ -41,6 +41,7 @@ public class SQLDataAccess implements DataAccesser {
                         blackUsername VARCHAR(255),
                         gameName VARCHAR(255) NOT NULL,
                         game TEXT NOT NULL,
+                        gameEnded BOOLEAN NOT NULL,
                         PRIMARY KEY (gameID)
                     )""",
 
@@ -181,7 +182,8 @@ public class SQLDataAccess implements DataAccesser {
         var blackUser = rs.getString("blackUsername");
         var gameName = rs.getString("gameName");
         ChessGame game = new Gson().fromJson(rs.getString("game"), ChessGame.class);
-        return new GameData(gameID, whiteUser, blackUser, gameName, game);
+        var gameEnded = rs.getBoolean("gameEnded");
+        return new GameData(gameID, whiteUser, blackUser, gameName, game, gameEnded);
 
     }
 
@@ -189,13 +191,14 @@ public class SQLDataAccess implements DataAccesser {
     public void addGameData(GameData newGameData) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             var addGameData = conn.prepareStatement("INSERT INTO gameData (gameID, whiteUsername, blackUsername," +
-                    "gameName, game) VALUES (?, ?, ?, ?, ?)");
+                    "gameName, game, gameEnded) VALUES (?, ?, ?, ?, ?, ?)");
             addGameData.setInt(1, newGameData.gameID());
             addGameData.setString(2, newGameData.whiteUsername());
             addGameData.setString(3, newGameData.blackUsername());
             addGameData.setString(4, newGameData.gameName());
             String json = new Gson().toJson(newGameData.game());
             addGameData.setString(5, json);
+            addGameData.setBoolean(6, newGameData.gameEnded());
 
             addGameData.executeUpdate();
         } catch (Exception ex) {

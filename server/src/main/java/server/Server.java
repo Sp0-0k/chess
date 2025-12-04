@@ -251,8 +251,11 @@ public class Server {
         }
     }
 
-    private boolean validateMove(ChessMove moveToMake, GameData gameData, String playerName) {
+    private boolean validateMove(ChessMove moveToMake, GameData gameData, String playerName) throws Exception {
         ChessGame currGame = gameData.game();
+        if (gameData.gameEnded()) {
+            throw new Exception("Game has ended, no moves can be made");
+        }
         var validMoves = currGame.validMoves(moveToMake.getStartPosition());
         var pieceColor = currGame.getBoard().getPiece(moveToMake.getStartPosition()).getTeamColor();
         ChessGame.TeamColor playerColor;
@@ -342,6 +345,10 @@ public class Server {
             }
             var authData = getAuthData(authToken);
             var gameData = getGame(gameID);
+            if (gameData.gameEnded()) {
+                sendWSError("The game has already ended, cannot resign", session);
+                return;
+            }
             var playerName = authData.username();
             if (Objects.equals(playerName, gameData.whiteUsername()) || Objects.equals(playerName, gameData.blackUsername())) {
                 var resignMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " has resigned"
@@ -350,10 +357,12 @@ public class Server {
                 for (Session connection : connections) {
                     connection.getRemote().sendString(messageJson);
                 }
-                activeGames.remove(gameID);
+                var updatedData = new GameData(gameID, gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(),
+                        gameData.game(), true);
+                updateGame(gameID, updatedData);
                 return;
             }
-            sendWSError("request deined, you are an observer", session);
+            sendWSError("request denied, you are an observer", session);
         } catch (Exception ex) {
             sendWSError(ex.getMessage(), session);
         }
@@ -365,11 +374,13 @@ public class Server {
             var gameData = getGame(gameID);
             var playerName = Objects.requireNonNull(getAuthData(authToken)).username();
             if (Objects.equals(playerName, gameData.whiteUsername())) {
-                var updatedGame = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+                var updatedGame = new GameData(gameID, null, gameData.blackUsername(), gameData.gameName(),
+                        gameData.game(), gameData.gameEnded());
                 updateGame(gameID, updatedGame);
             }
             if (Objects.equals(playerName, gameData.blackUsername())) {
-                var updatedGame = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+                var updatedGame = new GameData(gameID, gameData.whiteUsername(), null, gameData.gameName(),
+                        gameData.game(), gameData.gameEnded());
                 updateGame(gameID, updatedGame);
             }
             var leftMessage = new NotificationMessage(ServerMessage.ServerMessageType.NOTIFICATION, playerName + " left the game");

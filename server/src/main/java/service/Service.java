@@ -123,7 +123,7 @@ public class Service {
             throw new ServiceException("Error: bad request");
         }
         int gameID = Math.abs(random.nextInt());
-        return new GameData(gameID, null, null, gameName, new ChessGame());
+        return new GameData(gameID, null, null, gameName, new ChessGame(), false);
     }
 
     public void joinGame(int gameID, String playerColor, String authToken) throws ServiceException {
@@ -139,13 +139,15 @@ public class Service {
             GameData updatedGame;
             if (Objects.equals(playerColor, "WHITE")) {
                 if (baseGameData.whiteUsername() == null) {
-                    updatedGame = new GameData(gameID, usernameToSet, baseGameData.blackUsername(), baseGameData.gameName(), baseGameData.game());
+                    updatedGame = new GameData(gameID, usernameToSet, baseGameData.blackUsername(), baseGameData.gameName(),
+                            baseGameData.game(), baseGameData.gameEnded());
                 } else {
                     throw new ServiceException("Error: already taken");
                 }
             } else {
                 if (baseGameData.blackUsername() == null) {
-                    updatedGame = new GameData(gameID, baseGameData.whiteUsername(), usernameToSet, baseGameData.gameName(), baseGameData.game());
+                    updatedGame = new GameData(gameID, baseGameData.whiteUsername(), usernameToSet, baseGameData.gameName(),
+                            baseGameData.game(), baseGameData.gameEnded());
                 } else {
                     throw new ServiceException("Error: already taken");
                 }
