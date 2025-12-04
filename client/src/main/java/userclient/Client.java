@@ -90,77 +90,79 @@ public class Client {
     }
 
     private void observeGame(String[] tokens) {
-        if (loggedIn) {
-            try {
-                if (tokens.length == 2) {
-                    int idToCheck = Integer.parseInt(tokens[1]) - 1;
-                    if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
-                        System.out.println("Sorry that's not a valid game ID");
-                        return;
-                    }
-                    wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID(), playerName);
-                    boolean connected = true;
-                    Scanner scanner = new Scanner(System.in);
-                    while (connected) {
-                        String line = scanner.nextLine();
-                        if (line.equalsIgnoreCase("leave")) {
-                            connected = false;
-                        } else {
-                            System.out.println("Enter 'leave' to stop watching");
-                        }
-                    }
-                } else {
-                    System.out.println("Incorrect number of arguments");
+        if (!loggedIn) {
+            return;
+        }
+        try {
+            if (tokens.length == 2) {
+                int idToCheck = Integer.parseInt(tokens[1]) - 1;
+                if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
+                    System.out.println("Sorry that's not a valid game ID");
+                    return;
                 }
-            } catch (RuntimeException ex) {
-                System.out.println("There was an error: ");
+                wsFacade.wsConnect(authToken, lastPulledGameList[idToCheck].gameID(), playerName);
+                boolean connected = true;
+                Scanner scanner = new Scanner(System.in);
+                while (connected) {
+                    String line = scanner.nextLine();
+                    if (line.equalsIgnoreCase("leave")) {
+                        connected = false;
+                    } else {
+                        System.out.println("Enter 'leave' to stop watching");
+                    }
+                }
+            } else {
+                System.out.println("Incorrect number of arguments");
             }
+        } catch (RuntimeException ex) {
+            System.out.println("There was an error: ");
         }
     }
 
     private void joinGame(String[] tokens) {
-        if (loggedIn) {
-            try {
-                if (tokens.length == 3) {
-                    tokens[1] = tokens[1].toUpperCase();
-                    if (!tokens[1].equals("WHITE") && !tokens[1].equals("BLACK")) {
-                        System.out.println("Sorry, your team color couldn't be read");
-                        return;
-                    }
-                    int idToCheck = Integer.parseInt(tokens[2]) - 1;
-                    if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
-                        System.out.println("Sorry that's not a valid game ID");
-                        return;
-                    }
-                    int gameID = lastPulledGameList[idToCheck].gameID();
-                    facade.joinGame(authToken, tokens[1], gameID);
-                    wsFacade.wsConnect(authToken, gameID, playerName);
-                    boolean connected = true;
-                    Scanner scanner = new Scanner(System.in);
-                    while (connected) {
-                        String line = scanner.nextLine();
-                        if (line.equalsIgnoreCase("leave")) {
-                            leaveGame();
-                            connected = false;
-                        } else {
-                            parseGameCommands(line);
-                        }
-                    }
-                } else {
-                    System.out.println("Incorrect number of arguments");
+        if (!loggedIn) {
+            return;
+        }
+        try {
+            if (tokens.length == 3) {
+                tokens[1] = tokens[1].toUpperCase();
+                if (!tokens[1].equals("WHITE") && !tokens[1].equals("BLACK")) {
+                    System.out.println("Sorry, your team color couldn't be read");
+                    return;
                 }
-            } catch (ResponseException ex) {
-                if (ex.code() == 401) {
-                    System.out.println("It seems like you're login is no longer valid, please log in and try again");
-                    loggedIn = false;
-                } else if (ex.code() == 403) {
-                    System.out.println("The player color you selected is already in use in that game, please try again");
-                } else {
-                    System.out.println("There was an error joining that game, please try again");
+                int idToCheck = Integer.parseInt(tokens[2]) - 1;
+                if (idToCheck >= lastPulledGameList.length || idToCheck < 0) {
+                    System.out.println("Sorry that's not a valid game ID");
+                    return;
                 }
-            } catch (NumberFormatException ex) {
-                System.out.println("Invalid gameID, expecting a number");
+                int gameID = lastPulledGameList[idToCheck].gameID();
+                facade.joinGame(authToken, tokens[1], gameID);
+                wsFacade.wsConnect(authToken, gameID, playerName);
+                boolean connected = true;
+                Scanner scanner = new Scanner(System.in);
+                while (connected) {
+                    String line = scanner.nextLine();
+                    if (line.equalsIgnoreCase("leave")) {
+                        leaveGame();
+                        connected = false;
+                    } else {
+                        parseGameCommands(line);
+                    }
+                }
+            } else {
+                System.out.println("Incorrect number of arguments");
             }
+        } catch (ResponseException ex) {
+            if (ex.code() == 401) {
+                System.out.println("It seems like you're login is no longer valid, please log in and try again");
+                loggedIn = false;
+            } else if (ex.code() == 403) {
+                System.out.println("The player color you selected is already in use in that game, please try again");
+            } else {
+                System.out.println("There was an error joining that game, please try again");
+            }
+        } catch (NumberFormatException ex) {
+            System.out.println("Invalid gameID, expecting a number");
         }
     }
 
